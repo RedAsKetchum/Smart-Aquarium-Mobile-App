@@ -32,6 +32,7 @@ if(fontsLoaded) SplashScreen.hideAsync();
 <Stack>
 
 <Stack.Screen name="index" options={{headerShown: false }}/>
+<Stack.Screen name="settings" options={{headerShown: false }}/>
 
 </Stack>
 
