@@ -1,13 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native'
-import {SplashScreen,Slot, Stack} from 'expo-router';
+import { StyleSheet, ImageBackground } from 'react-native';
+import { SplashScreen, Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
-
 
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
-
   const [fontsLoaded, error] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
@@ -21,26 +19,21 @@ const RootLayout = () => {
   });
 
   useEffect(() => {
-if (error) throw error;
-if(fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded,error])
+    if (error) throw error;
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded, error]);
 
-  if(!fontsLoaded && !error) return null;
+  if (!fontsLoaded && !error) return null;
 
   return (
-    
-<Stack>
+    <Stack>
+      {/* Index Screen */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
 
-<Stack.Screen name="index" options={{headerShown: false }}/>
-<Stack.Screen name="settings" options={{headerShown: false }}/>
+      {/* Settings Screen */}
+      <Stack.Screen name="settings" options={{ headerShown: false }} />
+    </Stack>
+  );
+};
 
-</Stack>
-
-  )
-}
-
-export default RootLayout
-
-
-
-
+export default RootLayout;
