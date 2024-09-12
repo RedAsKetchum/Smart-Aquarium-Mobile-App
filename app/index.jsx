@@ -9,6 +9,10 @@ import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
 
+import { useEffect, useState } from 'react';
+import {ActivityIndicator } from 'react-native';
+
+
 
 export default function App() {
   const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
@@ -18,6 +22,10 @@ export default function App() {
   const sheetRef = useRef(null);
   const snapPoints = ['15%', '32%'];
 
+  const [sensorData, setSensorData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
     // Custom handle component with a centered indicator bar
     const CustomHandle = () => {
       return (
@@ -26,6 +34,44 @@ export default function App() {
         </View>
       );
     };
+
+    //Fetch Sensor Data TESTING****
+    useEffect(() => {
+      // Function to fetch the sensor data from ESP32
+      const fetchSensorData = async () => {
+        try {
+          const response = await fetch('http://192.168.50.35/getFirstEntry'); // Replace <ESP32_IP> with your ESP32's IP address
+          if (!response.ok) {
+            throw new Error('Failed to fetch sensor data');
+          }
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            setSensorData(data);
+          } else {
+            setError('No data available');
+          }
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchSensorData();
+    }, []);
+
+    if (loading) {
+      return <ActivityIndicator size="large" color="#0000ff" />;
+    }
+  
+    if (error) {
+      return (
+        <View style={styles.container}>
+          <Text>Error: {error}</Text>
+        </View>
+      );
+    }
+ 
 
   return (
 
@@ -41,11 +87,18 @@ export default function App() {
             <View className="relative mt-5">
 
              {/* AQUARIUM'S STATUS PANEL*/}
-             <View className="bg-gray-50/40 w-full h-56 rounded-xl items-center p-16">
+             <View className="bg-gray-50/40 w-full h-56 rounded-xl items-center p-7">
                 
-                {/* <Text className="text-white text-lg font-bold text-center">Insert Status Widgets Here</Text> */}
+              <Text className="text-2xl font-bold">Sensor Data</Text>
+              <Text>ID: {sensorData.ID}</Text>
+              <Text>Sensor 1: {sensorData.Sensor1}</Text>
+              <Text>Sensor 1 Timestamp: {sensorData.Sensor1Timestamp}</Text>
+              <Text>Sensor 2: {sensorData.Sensor2}</Text>
+              <Text>Sensor 2 Timestamp: {sensorData.Sensor2Timestamp}</Text>
+              <Text>Sensor 3: {sensorData.Sensor3}</Text>
+              <Text>Sensor 3 Timestamp: {sensorData.Sensor3Timestamp}</Text>
                
-              </View>
+             </View>
 
               {/* HISTORY BUTTON*/}
               <CustomButton
