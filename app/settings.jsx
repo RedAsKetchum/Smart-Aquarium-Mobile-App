@@ -5,6 +5,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
+import Icon from 'react-native-vector-icons/Ionicons';
+
 
 
 const settings = () => {
@@ -14,19 +16,23 @@ const settings = () => {
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['10%', '40%'];
-
+ 
   return (
     <GestureHandlerRootView style={styles.container}>  
     <SafeAreaView className="bg-primary h-full">
       <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        {/* Back button */}
         <View>
+          {/* Back button */}
           <TouchableOpacity  
             onPress={() => router.push('/')} 
             style={{
             top: 10,  
             left: 20,}}>
-          <Text style={{ color: 'white', fontSize: 20, fontWeight: '400'}}>{'<'} Index</Text> 
+            <Icon 
+              name="arrow-back"  
+              size={30} 
+              color="white"  
+            />
           </TouchableOpacity>
         </View>
       <ScrollView contentContainerStyle={{ height: '100%', marginTop: 40}}>

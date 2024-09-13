@@ -7,6 +7,7 @@ import { BlurView } from 'expo-blur';
 import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
+import schedulePage from './schedulePage';
 
 export default function App() {
   const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
@@ -21,7 +22,7 @@ export default function App() {
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <ScrollView contentContainerStyle={{ height: '100%' }}>
-          <View className="w-full min-[85vh] px-4">
+          <View className="w-full min-[85vh] px-5">
             <Text className="text-2xl font-bold text-white text-center">{dayName}</Text>
             <Text className="text-xl font-semibold text-white text-center pl-2">{monthAndDay}</Text>
             <View className="relative mt-5">
@@ -102,7 +103,7 @@ export default function App() {
                 {/* Calendar Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 30, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Calendar Button pressed')}
+                  onPress={() => router.push('./schedulePage')}
                 >
                   <Image
                     source={require('../assets/icons/calendarButton.png')}  
