@@ -12,10 +12,13 @@ import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
 import { useEffect, useState } from 'react';
 import {ActivityIndicator } from 'react-native';
 
-
+import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import io from 'socket.io-client';
 
 export default function App() {
   const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
+  const socket = io('http://192.168.50.35');  // Replace with your ESP32 server URL
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
@@ -25,9 +28,78 @@ export default function App() {
   const [sensorData, setSensorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+   // Extract temperature value from sensor data by looking for the text entry "Sensor1" on the JSON reponse from the ESP32 server
+   const temperature = sensorData?.Sensor1 || 0; // Adjust the key based on your actual data structure
+
+   //const temperatureInFahrenheit = (temperature * 9/5) + 32;
+   const temperatureInFahrenheit = (temperature);
+   
+   // Adjust the key based on your data structure
+   const maxTemperature = 100; // Max value of the gauge
+
+  // const gaugeValue = 0; // Declare gaugeValue
+  // const maxValue = 100;  // Declare maxValue
+
+  //GAUGE
+  // function GradientGauge({ value, maxValue }) {
+  //   const radius = 80;  // Radius of the gauge
+  //   const strokeWidth = 20;
+  //   const centerX = 100;
+  //   const centerY = 100;
+
+  //   // Calculate how much of the gauge should be filled based on the value (in degrees)
+  //   const angle = (value / maxValue) * 180;
+
+  //   // Arc path from leftmost (0°C) to a calculated point based on value
+  //   const arcPath = `
+  //     M ${centerX - radius},${centerY} 
+  //     A ${radius},${radius} 0 ${angle > 180 ? 1 : 0} 1 
+  //     ${centerX - radius + 2 * radius * Math.cos(angle * (Math.PI / 180))}, 
+  //     ${centerY - radius * Math.sin(angle * (Math.PI / 180))}
+  //   `;
+
+  //   return (
+  //     <View style={styles.container}>
+  //       <Svg height="200" width="200" viewBox="0 0 200 200" style={styles.svgContainer}>
+  //         <Defs>
+  //           {/* Define the gradient for the gauge fill */}
+  //           <LinearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+  //             <Stop offset="0%" stopColor="#EA4228" stopOpacity="1" />
+  //             <Stop offset="50%" stopColor="#F5CD19" stopOpacity="1" />
+  //             <Stop offset="100%" stopColor="#5BE12C" stopOpacity="1" />
+  //           </LinearGradient>
+  //         </Defs>
+
+  //         {/* Background Circle with missing bottom */}
+  //         <Path
+  //           d={`M ${centerX - radius},${centerY} A ${radius},${radius} 0 1 1 ${centerX + radius},${centerY}`}
+  //           stroke="#e0e0e0"
+  //           strokeWidth={strokeWidth}
+  //           strokeLinecap="round"
+  //           fill="none"
+  //         />
+
+  //         {/* Filled Arc */}
+  //         <Path
+  //           d={arcPath}
+  //           stroke="url(#grad1)"
+  //           strokeWidth={strokeWidth}
+  //           strokeLinecap="round"
+  //           fill="none"
+  //         />
+  //       </Svg>
+
+  //       {/* Temperature Value */}
+  //       <Text style={styles.temperatureText}>
+  //         {value}°C
+  //       </Text>
+  //     </View>
+  //   );
+  // }
   
-    // Custom handle component with a centered indicator bar
-    const CustomHandle = () => {
+  // Custom handle component with a centered indicator bar
+  const CustomHandle = () => {
       return (
         <View className="items-center justify-center top-3">
           <View className="bg-gray-500 rounded-full w-10 h-1" />
@@ -36,29 +108,53 @@ export default function App() {
     };
 
     //Fetch Sensor Data TESTING****
-    useEffect(() => {
-      // Function to fetch the sensor data from ESP32
-      const fetchSensorData = async () => {
-        try {
-          const response = await fetch('http://192.168.50.35/getFirstEntry'); // Replace <ESP32_IP> with your ESP32's IP address
-          if (!response.ok) {
-            throw new Error('Failed to fetch sensor data');
+      useEffect(() => {
+        // Function to fetch the sensor data from ESP32
+        const fetchSensorData = async () => {
+          try {
+            const response = await fetch('http://192.168.50.35/getNewestEntry'); // Replace <ESP32_IP> with your ESP32's IP address
+            if (!response.ok) {
+              throw new Error('Failed to fetch sensor data');
+            }
+            const data = await response.json();
+            if (data && Object.keys(data).length > 0) {
+              setSensorData(data);
+            } else {
+              setError('No data available');
+            }
+          } catch (err) {
+            setError(err.message);
+          } finally {
+            setLoading(false);
           }
-          const data = await response.json();
-          if (data && Object.keys(data).length > 0) {
+        };
+    
+        fetchSensorData();
+
+      }, []);
+
+      useEffect(() => {
+        const socket = io(ESP32_IP);
+      
+        const handleMessage = (message) => {
+          const data = JSON.parse(message.data);
+          if (data && data.Sensor1 !== undefined) {
+            console.log('Received WebSocket message:', data); // Debugging
             setSensorData(data);
-          } else {
-            setError('No data available');
           }
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchSensorData();
-    }, []);
+        };
+      
+        socket.on('connect', () => {
+          console.log('Connected to WebSocket');
+        });
+      
+        socket.on('data', handleMessage); // Adjust event name based on server
+      
+        return () => {
+          socket.off('data', handleMessage);
+          socket.disconnect();
+        };
+      }, []);
 
     if (loading) {
       return <ActivityIndicator size="large" color="#0000ff" />;
@@ -71,7 +167,6 @@ export default function App() {
         </View>
       );
     }
- 
 
   return (
 
@@ -88,16 +183,41 @@ export default function App() {
 
              {/* AQUARIUM'S STATUS PANEL*/}
              <View className="bg-gray-50/40 w-full h-56 rounded-xl items-center p-7">
+
+        
+             <Text className="text-white text-2xl font-bold">Status</Text>
+              {/* <Text>ID: {sensorData.ID}</Text> */}
+              {/* <Text>Sensor 1: {sensorData.Sensor1} - {sensorData.Sensor1Timestamp}</Text>
+              <Text>Sensor 2: {sensorData.Sensor2} - {sensorData.Sensor2Timestamp}</Text>
+              <Text>Sensor 3: {sensorData.Sensor3} - {sensorData.Sensor3Timestamp}</Text> */}
+
+              {/* <View style={styles.gaugeContainer}>
+                <GradientGauge value={gaugeValue} maxValue={maxValue} />
+              </View> */}
+
+        <View style={styles.container}>
                 
-              <Text className="text-2xl font-bold">Sensor Data</Text>
-              <Text>ID: {sensorData.ID}</Text>
-              <Text>Sensor 1: {sensorData.Sensor1}</Text>
-              <Text>Sensor 1 Timestamp: {sensorData.Sensor1Timestamp}</Text>
-              <Text>Sensor 2: {sensorData.Sensor2}</Text>
-              <Text>Sensor 2 Timestamp: {sensorData.Sensor2Timestamp}</Text>
-              <Text>Sensor 3: {sensorData.Sensor3}</Text>
-              <Text>Sensor 3 Timestamp: {sensorData.Sensor3Timestamp}</Text>
-               
+                      <AnimatedCircularProgress
+                size={180}
+                width={20}
+                fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                tintColor="#ff4500"
+                backgroundColor="#d3d3d3"
+                lineCap="round"
+                arcSweepAngle={240}
+                rotation={240}
+                duration={800}
+              >
+                {() => (
+                  <View style={styles.centerTextContainer}>
+                    <Text style={styles.temperatureText}>
+                      {temperatureInFahrenheit.toFixed(1)}°F
+                    </Text>
+                  </View>
+                )}
+              </AnimatedCircularProgress>
+            </View>
+         
              </View>
 
               {/* HISTORY BUTTON*/}
@@ -125,8 +245,7 @@ export default function App() {
           handleComponent={CustomHandle}
           backgroundStyle={styles.bottomSheetBackground}
           handleStyle={styles.bottomSheetHandle}
-      
-        >
+          >
     
           <View style={styles.bottomSheetContent}>
             <BlurView intensity={70} style={styles.blurContainer}>
@@ -209,3 +328,4 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
