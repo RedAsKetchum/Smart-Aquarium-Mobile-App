@@ -17,7 +17,8 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import io from 'socket.io-client';
 
 export default function App() {
-  const ESP32_IP = 'ws://192.168.50.35';  // Replace with your ESP32 IP address
+ 
+  const ESP32_IP = 'ws://192.168.50.35:81';  // Replace with your ESP32 IP address
   const socket = useRef(io(ESP32_IP)).current;  // Maintain a single WebSocket connection
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
@@ -39,66 +40,6 @@ export default function App() {
    const maxTemperature = 100; // Max value of the gauge
 
    const [forceUpdate, setForceUpdate] = useState(false)
-
-  // const gaugeValue = 0; // Declare gaugeValue
-  // const maxValue = 100;  // Declare maxValue
-
-  //GAUGE
-  // function GradientGauge({ value, maxValue }) {
-  //   const radius = 80;  // Radius of the gauge
-  //   const strokeWidth = 20;
-  //   const centerX = 100;
-  //   const centerY = 100;
-
-  //   // Calculate how much of the gauge should be filled based on the value (in degrees)
-  //   const angle = (value / maxValue) * 180;
-
-  //   // Arc path from leftmost (0°C) to a calculated point based on value
-  //   const arcPath = `
-  //     M ${centerX - radius},${centerY} 
-  //     A ${radius},${radius} 0 ${angle > 180 ? 1 : 0} 1 
-  //     ${centerX - radius + 2 * radius * Math.cos(angle * (Math.PI / 180))}, 
-  //     ${centerY - radius * Math.sin(angle * (Math.PI / 180))}
-  //   `;
-
-  //   return (
-  //     <View style={styles.container}>
-  //       <Svg height="200" width="200" viewBox="0 0 200 200" style={styles.svgContainer}>
-  //         <Defs>
-  //           {/* Define the gradient for the gauge fill */}
-  //           <LinearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-  //             <Stop offset="0%" stopColor="#EA4228" stopOpacity="1" />
-  //             <Stop offset="50%" stopColor="#F5CD19" stopOpacity="1" />
-  //             <Stop offset="100%" stopColor="#5BE12C" stopOpacity="1" />
-  //           </LinearGradient>
-  //         </Defs>
-
-  //         {/* Background Circle with missing bottom */}
-  //         <Path
-  //           d={`M ${centerX - radius},${centerY} A ${radius},${radius} 0 1 1 ${centerX + radius},${centerY}`}
-  //           stroke="#e0e0e0"
-  //           strokeWidth={strokeWidth}
-  //           strokeLinecap="round"
-  //           fill="none"
-  //         />
-
-  //         {/* Filled Arc */}
-  //         <Path
-  //           d={arcPath}
-  //           stroke="url(#grad1)"
-  //           strokeWidth={strokeWidth}
-  //           strokeLinecap="round"
-  //           fill="none"
-  //         />
-  //       </Svg>
-
-  //       {/* Temperature Value */}
-  //       <Text style={styles.temperatureText}>
-  //         {value}°C
-  //       </Text>
-  //     </View>
-  //   );
-  // }
   
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
