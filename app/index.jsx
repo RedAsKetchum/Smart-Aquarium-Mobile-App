@@ -12,13 +12,13 @@ import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
 import { useEffect, useState } from 'react';
 import {ActivityIndicator } from 'react-native';
 
-import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
+//import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import io from 'socket.io-client';
 
 export default function App() {
-  const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
-  const socket = io('http://192.168.50.35');  // Replace with your ESP32 server URL
+  const ESP32_IP = 'ws://192.168.50.35';  // Replace with your ESP32 IP address
+  const socket = useRef(io(ESP32_IP)).current;  // Maintain a single WebSocket connection
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
@@ -37,6 +37,8 @@ export default function App() {
    
    // Adjust the key based on your data structure
    const maxTemperature = 100; // Max value of the gauge
+
+   const [forceUpdate, setForceUpdate] = useState(false)
 
   // const gaugeValue = 0; // Declare gaugeValue
   // const maxValue = 100;  // Declare maxValue
@@ -107,9 +109,9 @@ export default function App() {
       );
     };
 
-    //Fetch Sensor Data TESTING****
+  
+      // Function to fetch the sensor data from ESP32
       useEffect(() => {
-        // Function to fetch the sensor data from ESP32
         const fetchSensorData = async () => {
           try {
             const response = await fetch('http://192.168.50.35/getNewestEntry'); // Replace <ESP32_IP> with your ESP32's IP address
@@ -134,13 +136,17 @@ export default function App() {
       }, []);
 
       useEffect(() => {
-        const socket = io(ESP32_IP);
-      
+        // Function to handle incoming WebSocket messages
         const handleMessage = (message) => {
-          const data = JSON.parse(message.data);
-          if (data && data.Sensor1 !== undefined) {
-            console.log('Received WebSocket message:', data); // Debugging
-            setSensorData(data);
+          try {
+            const data = JSON.parse(message.data);
+            if (data && data.Sensor1 !== undefined) {
+              console.log('Received WebSocket message:', data);
+              setSensorData(data);
+              setForceUpdate(prev => !prev);  // Force a re-render
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
           }
         };
       
@@ -148,13 +154,15 @@ export default function App() {
           console.log('Connected to WebSocket');
         });
       
-        socket.on('data', handleMessage); // Adjust event name based on server
+        socket.on('data', handleMessage); // Adjust event name based on your server
       
+        // Clean up WebSocket connection on component unmount
         return () => {
           socket.off('data', handleMessage);
           socket.disconnect();
         };
-      }, []);
+      }, [socket]);
+      
 
     if (loading) {
       return <ActivityIndicator size="large" color="#0000ff" />;
@@ -185,7 +193,7 @@ export default function App() {
              <View className="bg-gray-50/40 w-full h-56 rounded-xl items-center p-7">
 
         
-             <Text className="text-white text-2xl font-bold">Status</Text>
+             <Text className="text-white text-2xl font-bold -mt-5 mb-3">Status</Text>
               {/* <Text>ID: {sensorData.ID}</Text> */}
               {/* <Text>Sensor 1: {sensorData.Sensor1} - {sensorData.Sensor1Timestamp}</Text>
               <Text>Sensor 2: {sensorData.Sensor2} - {sensorData.Sensor2Timestamp}</Text>
@@ -212,6 +220,7 @@ export default function App() {
                   <View style={styles.centerTextContainer}>
                     <Text style={styles.temperatureText}>
                       {temperatureInFahrenheit.toFixed(1)}°F
+                     
                     </Text>
                   </View>
                 )}
