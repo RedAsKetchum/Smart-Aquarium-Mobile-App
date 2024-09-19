@@ -50,7 +50,6 @@ export default function App() {
       );
     };
 
-  
       // Function to fetch the sensor data from ESP32
       useEffect(() => {
         const fetchSensorData = async () => {
@@ -95,12 +94,15 @@ export default function App() {
           console.log('Connected to WebSocket');
         });
       
-        socket.on('data', handleMessage); // Adjust event name based on your server
+        socket.on('message', function (message) {
+          handleMessage(message);
+        });
+        
       
         // Clean up WebSocket connection on component unmount
         return () => {
-          socket.off('data', handleMessage);
-          socket.disconnect();
+          socket.removeAllListeners(); // Remove all event listeners
+          socket.disconnect(); // Disconnect the WebSocket connection
         };
       }, [socket]);
       
