@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -16,7 +15,7 @@ export default function AddSchedule() {
     const snapPoints = ['10%', '40%'];
     
     return (
-        <GestureHandlerRootView style={styles.container}>  
+    <GestureHandlerRootView style={styles.container}>  
         <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
@@ -105,6 +104,6 @@ export default function AddSchedule() {
             </View>
         </ScrollView>
         </SafeAreaView>
-        </GestureHandlerRootView>
+    </GestureHandlerRootView>
     );
 }
