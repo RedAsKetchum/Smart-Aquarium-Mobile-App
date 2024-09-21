@@ -8,12 +8,10 @@ import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
-
 import { useEffect, useState } from 'react';
 import {ActivityIndicator } from 'react-native';
-
-//import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+//import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
 //import io from 'socket.io-client';
 
 export default function App() {
@@ -31,7 +29,7 @@ export default function App() {
   const [error, setError] = useState(null);
 
    // Extract temperature value from sensor data by looking for the text entry "Sensor1" on the JSON reponse from the ESP32 server
-   const temperature = sensorData?.Sensor1 || 0; // Adjust the key based on your actual data structure
+   const temperature = sensorData?.Sensor1; // Adjust the key based on your actual data structure
 
    //const temperatureInFahrenheit = (temperature * 9/5) + 32;
    const temperatureInFahrenheit = (temperature);
@@ -73,6 +71,35 @@ export default function App() {
     
         fetchSensorData();
 
+      }, []);
+
+      useEffect(() => {
+        // Function to perform long polling
+        const pollServerForSensor1 = async () => {
+          try {
+            const response = await fetch('http://192.168.50.35/long-polling-sensor1');  // Replace with your ESP32's IP
+            const data = await response.json();
+            console.log('Received data:', data);  // Log the data
+            console.log('Sensor Value:', data.Sensor1);
+  
+            // Update state with the new data
+            setSensorData(data);
+            setLoading(false);
+    
+            // Poll again after receiving the data
+            pollServerForSensor1();
+          } catch (error) {
+            console.error('Error polling server:', error);
+            setTimeout(pollServerForSensor1, 5000);  // Retry after 5 seconds in case of an error
+          }
+        };
+    
+        // Start polling when the component mounts
+        pollServerForSensor1();
+    
+        return () => {
+          // Clean up if necessary
+        };
       }, []);
 
       // useEffect(() => {
