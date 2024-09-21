@@ -14,12 +14,12 @@ import {ActivityIndicator } from 'react-native';
 
 //import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import io from 'socket.io-client';
+//import io from 'socket.io-client';
 
 export default function App() {
  
-  const ESP32_IP = 'ws://192.168.50.35:81';  // Replace with your ESP32 IP address
-  const socket = useRef(io(ESP32_IP)).current;  // Maintain a single WebSocket connection
+  //const ESP32_IP = 'ws://192.168.50.35:81';  // Replace with your ESP32 IP address
+  //const socket = useRef(io(ESP32_IP)).current;  // Maintain a single WebSocket connection
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
@@ -75,36 +75,36 @@ export default function App() {
 
       }, []);
 
-      useEffect(() => {
-        // Function to handle incoming WebSocket messages
-        const handleMessage = (message) => {
-          try {
-            const data = JSON.parse(message.data);
-            if (data && data.Sensor1 !== undefined) {
-              console.log('Received WebSocket message:', data);
-              setSensorData(data);
-              setForceUpdate(prev => !prev);  // Force a re-render
-            }
-          } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
-          }
-        };
+      // useEffect(() => {
+      //   // Function to handle incoming WebSocket messages
+      //   const handleMessage = (message) => {
+      //     try {
+      //       const data = JSON.parse(message.data);
+      //       if (data && data.Sensor1 !== undefined) {
+      //         console.log('Received WebSocket message:', data);
+      //         setSensorData(data);
+      //         setForceUpdate(prev => !prev);  // Force a re-render
+      //       }
+      //     } catch (error) {
+      //       console.error('Error parsing WebSocket message:', error);
+      //     }
+      //   };
       
-        socket.on('connect', () => {
-          console.log('Connected to WebSocket');
-        });
+      //   socket.on('connect', () => {
+      //     console.log('Connected to WebSocket');
+      //   });
       
-        socket.on('message', function (message) {
-          handleMessage(message);
-        });
+      //   socket.on('message', function (message) {
+      //     handleMessage(message);
+      //   });
         
       
-        // Clean up WebSocket connection on component unmount
-        return () => {
-          socket.removeAllListeners(); // Remove all event listeners
-          socket.disconnect(); // Disconnect the WebSocket connection
-        };
-      }, [socket]);
+      //   // Clean up WebSocket connection on component unmount
+      //   return () => {
+      //     socket.removeAllListeners(); // Remove all event listeners
+      //     socket.disconnect(); // Disconnect the WebSocket connection
+      //   };
+      // }, [socket]);
       
 
     if (loading) {
