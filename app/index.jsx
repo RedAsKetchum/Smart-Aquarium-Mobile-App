@@ -13,31 +13,30 @@ import {ActivityIndicator } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 //import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
 //import io from 'socket.io-client';
+import {StyleSheet, Alert} from 'react-native';
 
 export default function App() {
  
-  //const ESP32_IP = 'ws://192.168.50.35:81';  // Replace with your ESP32 IP address
-  //const socket = useRef(io(ESP32_IP)).current;  // Maintain a single WebSocket connection
+  //*****CONSTANTS*****/
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['15%', '32%'];
-
   const [sensorData, setSensorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [servoMoving, setServoMoving] = useState(false);
 
    // Extract temperature value from sensor data by looking for the text entry "Sensor1" on the JSON reponse from the ESP32 server
    const temperature = sensorData?.Sensor1; // Adjust the key based on your actual data structure
 
-   //const temperatureInFahrenheit = (temperature * 9/5) + 32;
    const temperatureInFahrenheit = (temperature);
    
    // Adjust the key based on your data structure
    const maxTemperature = 100; // Max value of the gauge
 
-   const [forceUpdate, setForceUpdate] = useState(false)
+   //const [forceUpdate, setForceUpdate] = useState(false)
   
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -60,7 +59,7 @@ export default function App() {
             if (data && Object.keys(data).length > 0) {
               setSensorData(data);
             } else {
-              setError('No data available');
+              setError('No data available'); //FIX!!!! Crashes the app. Look for alt method.
             }
           } catch (err) {
             setError(err.message);
@@ -79,8 +78,8 @@ export default function App() {
           try {
             const response = await fetch('http://192.168.50.35/long-polling-sensor1');  // Replace with your ESP32's IP
             const data = await response.json();
-            console.log('Received data:', data);  // Log the data
-            console.log('Sensor Value:', data.Sensor1);
+            //console.log('Received data:', data);  // Log the data
+            //console.log('Sensor Value:', data.Sensor1);
   
             // Update state with the new data
             setSensorData(data);
@@ -89,7 +88,7 @@ export default function App() {
             // Poll again after receiving the data
             pollServerForSensor1();
           } catch (error) {
-            console.error('Error polling server:', error);
+            //console.error('Error polling server:', error);
             setTimeout(pollServerForSensor1, 5000);  // Retry after 5 seconds in case of an error
           }
         };
@@ -102,38 +101,6 @@ export default function App() {
         };
       }, []);
 
-      // useEffect(() => {
-      //   // Function to handle incoming WebSocket messages
-      //   const handleMessage = (message) => {
-      //     try {
-      //       const data = JSON.parse(message.data);
-      //       if (data && data.Sensor1 !== undefined) {
-      //         console.log('Received WebSocket message:', data);
-      //         setSensorData(data);
-      //         setForceUpdate(prev => !prev);  // Force a re-render
-      //       }
-      //     } catch (error) {
-      //       console.error('Error parsing WebSocket message:', error);
-      //     }
-      //   };
-      
-      //   socket.on('connect', () => {
-      //     console.log('Connected to WebSocket');
-      //   });
-      
-      //   socket.on('message', function (message) {
-      //     handleMessage(message);
-      //   });
-        
-      
-      //   // Clean up WebSocket connection on component unmount
-      //   return () => {
-      //     socket.removeAllListeners(); // Remove all event listeners
-      //     socket.disconnect(); // Disconnect the WebSocket connection
-      //   };
-      // }, [socket]);
-      
-
     if (loading) {
       return <ActivityIndicator size="large" color="#0000ff" />;
     }
@@ -145,6 +112,25 @@ export default function App() {
         </View>
       );
     }
+
+    // Function to move the servo 30 degrees forward and back
+  const moveServo = async () => {
+    if (servoMoving) return; // Prevent multiple presses while moving
+
+    setServoMoving(true);
+    try {
+      const response = await fetch('http://192.168.50.35/move_servo'); // Replace with your ESP32 IP address
+      if (response.ok) {
+        Alert.alert('Success', 'Servo moved 50 degrees forward and back');
+      } else {
+        Alert.alert('Error', 'Failed to move servo');
+      }
+    } catch (error) {
+      Alert.alert('Error', `Failed to connect: ${error.message}`);
+    } finally {
+      setServoMoving(false); // Allow further presses after moving is done
+    }
+  };
 
   return (
 
@@ -234,7 +220,12 @@ export default function App() {
                 {/* Feeding Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Feeding Button pressed')}
+                  
+                  onPress={moveServo}
+                  //onPress={() => console.log('Feeding Button pressed')}
+
+
+
                 >
                   <Image
                     source={require('../assets/icons/feedingButton.png')}
