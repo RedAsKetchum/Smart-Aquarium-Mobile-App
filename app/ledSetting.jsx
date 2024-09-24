@@ -4,7 +4,7 @@ import WheelColorPicker from 'react-native-wheel-color-picker';
 import Slider from '@react-native-community/slider';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const ESP32_IP = 'http://192.168.1.245'; // ESP32 IP address
+const ESP32_IP = 'http://192.168.1.47'; // ESP32 IP address
 
 const ColorPickerComponent = () => {
   const [selectedColor, setSelectedColor] = useState('#ff0000'); // Initial color set to red
@@ -47,11 +47,11 @@ const ColorPickerComponent = () => {
           sendColorToESP32(color, brightness); 
         }}
         style={{width: 380, height: 400}} 
-        sliderSize={30}
+        sliderSize={35}
       />
       {/* Brightness Controls */}
       <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 30, width: 380}}>
-        {/* Minus icon */}
+        {/* Decrease Brightness */}
           <TouchableOpacity 
             onPress={() => {
               const newBrightness = Math.max(0, brightness - 0.1); 
@@ -75,7 +75,7 @@ const ColorPickerComponent = () => {
               }}
             />         
           </View>
-          {/* Plus icon */}
+          {/* Increase Brightness */}
           <TouchableOpacity 
             onPress={() => {
               const newBrightness = Math.min(1, brightness + 0.1); 
