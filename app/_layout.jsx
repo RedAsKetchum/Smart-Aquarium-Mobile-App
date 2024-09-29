@@ -38,13 +38,15 @@ const RootLayout = () => {
 
       {/* Add Schedule Screen */}
       <Stack.Screen name="addSchedule" options={{ headerShown: false }} />
+      
+      {/* Repeat Day Screen */}
+      <Stack.Screen name="repeatDay" options={{ headerShown: false }} />
+
 
       {/* LED Screen */}
       <Stack.Screen name="ledSetting" options={{ headerShown: false }} />
 
-      {/* Repeat Day Screen */}
-      <Stack.Screen name="repeatDay" options={{ headerShown: false }} />
-
+     
     </Stack>
   );
 };

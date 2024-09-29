@@ -40,7 +40,7 @@ export default function RepeatDay() {
                 {/* Header with Cancel and Save */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     <TouchableOpacity  
-                        onPress={() => router.push('/schedulePage')} 
+                        onPress={() => router.push('./addSchedule')} 
                         style={{ padding: 10, marginLeft: 10 }}>
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                     </TouchableOpacity>
