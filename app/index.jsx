@@ -11,9 +11,12 @@ import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
 import { useEffect, useState } from 'react';
 import {ActivityIndicator } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-//import Svg, { Circle, Defs, LinearGradient, Stop, Path } from 'react-native-svg';
-//import io from 'socket.io-client';
-import {StyleSheet, Alert} from 'react-native';
+
+// ********************* Adafruit IO credentials ***********************/
+const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
+const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
+const FEED_KEY = 'temperature-sensor';  // Your feed key
+const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 
 export default function App() {
  
@@ -23,21 +26,16 @@ export default function App() {
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['15%', '32%'];
-  const [sensorData, setSensorData] = useState(null);
+
+  const [temperatureSensor, setTemperatureSensor] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [servoMoving, setServoMoving] = useState(false);
 
-   // Extract temperature value from sensor data by looking for the text entry "Sensor1" on the JSON reponse from the ESP32 server
-   const temperature = sensorData?.Sensor1; // Adjust the key based on your actual data structure
-
-   const temperatureInFahrenheit = (temperature);
+  //Used to Display Data on the Homescreen Gauge
+  const temperatureInFahrenheit = (temperatureSensor);
    
    // Adjust the key based on your data structure
    const maxTemperature = 100; // Max value of the gauge
 
-   //const [forceUpdate, setForceUpdate] = useState(false)
-  
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
       return (
@@ -47,90 +45,119 @@ export default function App() {
       );
     };
 
-      // Function to fetch the sensor data from ESP32
-      useEffect(() => {
-        const fetchSensorData = async () => {
-          try {
-            const response = await fetch('http://192.168.50.35/getNewestEntry'); // Replace <ESP32_IP> with your ESP32's IP address
-            if (!response.ok) {
-              throw new Error('Failed to fetch sensor data');
-            }
-            const data = await response.json();
-            if (data && Object.keys(data).length > 0) {
-              setSensorData(data);
-            } else {
-              setError('No data available'); //FIX!!!! Crashes the app. Look for alt method.
-            }
-          } catch (err) {
-            setError(err.message);
-          } finally {
-            setLoading(false);
-          }
-        };
-    
+   // Function to fetch the latest sensor data from Adafruit IO
+const fetchSensorData = async () => {
+  try {
+    const response = await fetch(AIO_ENDPOINT);
+    const data = await response.json();
+    //console.log('Latest feed data:', data);
+
+    if (data.value) {
+      const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
+
+      if (sensorData.Sensor1 !== null && sensorData.Sensor1 !== undefined) {
+        const sensorValue = parseFloat(sensorData.Sensor1);  // Convert to number
+        if (!isNaN(sensorValue)) {
+          setTemperatureSensor(sensorValue);  // Update state with the numeric value
+        } else {
+          console.error("Sensor1 data is not a valid number:", sensorData.Sensor1);
+          setTemperatureSensor(null);  // Set to null if invalid
+        }
+      } else {
+        console.error("Sensor1 is null or undefined.");
+        setTemperatureSensor(null);  // Set to null if no valid value is found
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching sensor data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+      // Function to handle long polling
+      const startLongPolling = () => {
         fetchSensorData();
-
-      }, []);
+        // Poll every 5 seconds (or adjust as needed)
+        setTimeout(startLongPolling, 5000);
+      };
 
       useEffect(() => {
-        // Function to perform long polling
-        const pollServerForSensor1 = async () => {
-          try {
-            const response = await fetch('http://192.168.50.35/long-polling-sensor1');  // Replace with your ESP32's IP
-            const data = await response.json();
-            //console.log('Received data:', data);  // Log the data
-            //console.log('Sensor Value:', data.Sensor1);
-  
-            // Update state with the new data
-            setSensorData(data);
-            setLoading(false);
-    
-            // Poll again after receiving the data
-            pollServerForSensor1();
-          } catch (error) {
-            //console.error('Error polling server:', error);
-            setTimeout(pollServerForSensor1, 5000);  // Retry after 5 seconds in case of an error
-          }
-        };
-    
-        // Start polling when the component mounts
-        pollServerForSensor1();
-    
-        return () => {
-          // Clean up if necessary
-        };
+        // Start long polling when the component mounts
+        startLongPolling();
       }, []);
 
-    if (loading) {
-      return <ActivityIndicator size="large" color="#0000ff" />;
-    }
+        // Loading state handler (add this into your UI logic below)
+        if (temperatureSensor === null) {
+          return <ActivityIndicator size="large" color="#0000ff" />;
+        }
   
-    if (error) {
-      return (
-        <View style={styles.container}>
-          <Text>Error: {error}</Text>
-        </View>
-      );
-    }
+    // useEffect(() => {
+    //   // WebSocket URL with authentication
+    //   const socketUrl = `wss://io.adafruit.com/mqtt/${AIO_USERNAME}/feeds/${FEED_KEY}?x-aio-key=${AIO_KEY}`;
+
+    //   // Create a new WebSocket connection
+    //   const socket = new WebSocket(socketUrl);
+  
+    //   // Handle connection open
+    //   socket.onopen = () => {
+    //     console.log('WebSocket connected');
+    //     setConnected(true);
+    //   };
+  
+    //   // Handle incoming messages
+    //   socket.onmessage = (event) => {
+    //     try {
+    //       console.log('Raw message received:', event.data); // Log raw message
+    //       const messageData = JSON.parse(event.data);
+    //       console.log('Parsed message:', messageData); // Log parsed message
+    //       if (messageData && messageData.value) {
+    //         setTemperatureSensor(messageData.value);  // Update temperature sensor data
+    //       } else {
+    //         console.log('No value found in message data:', messageData);
+    //       }
+    //     } catch (err) {
+    //       console.error('Error parsing message data:', err);
+    //     }
+    //   };
+      
+    //   // Handle errors
+    //   socket.onerror = (error) => {
+    //     console.error('WebSocket error:', error);
+    //   };
+  
+    //   // Handle connection close
+    //   socket.onclose = (event) => {
+    //     console.log(`WebSocket closed: code = ${event.code}, reason = ${event.reason}`);
+    //     setConnected(false);
+    //   };
+      
+    //   // Cleanup WebSocket on unmount
+    //   return () => {
+    //     if (socket) {
+    //       socket.close();
+    //     }
+    //   };
+    // }, []);
 
     // Function to move the servo 30 degrees forward and back
-  const moveServo = async () => {
-    if (servoMoving) return; // Prevent multiple presses while moving
+  // const moveServo = async () => {
+  //   if (servoMoving) return; // Prevent multiple presses while moving
 
-    setServoMoving(true);
-    try {
-      const response = await fetch('http://192.168.50.35/move_servo'); // Replace with your ESP32 IP address
-      if (response.ok) {
-        Alert.alert('Success', 'Servo moved 50 degrees forward and back');
-      } else {
-        Alert.alert('Error', 'Failed to move servo');
-      }
-    } catch (error) {
-      Alert.alert('Error', `Failed to connect: ${error.message}`);
-    } finally {
-      setServoMoving(false); // Allow further presses after moving is done
-    }
-  };
+  //   setServoMoving(true);
+  //   try {
+  //     const response = await fetch('http://192.168.50.35/move_servo'); // Replace with your ESP32 IP address
+  //     if (response.ok) {
+  //       Alert.alert('Success', 'Servo moved 50 degrees forward and back');
+  //     } else {
+  //       Alert.alert('Error', 'Failed to move servo');
+  //     }
+  //   } catch (error) {
+  //     Alert.alert('Error', `Failed to connect: ${error.message}`);
+  //   } finally {
+  //     setServoMoving(false); // Allow further presses after moving is done
+  //   }
+  // };
 
   return (
 
@@ -164,7 +191,9 @@ export default function App() {
                       <AnimatedCircularProgress
                 size={180}
                 width={20}
+
                 fill={(temperatureInFahrenheit / maxTemperature) * 100}
+
                 tintColor="#ff4500"
                 backgroundColor="#d3d3d3"
                 lineCap="round"
@@ -175,6 +204,7 @@ export default function App() {
                 {() => (
                   <View style={styles.centerTextContainer}>
                     <Text style={styles.temperatureText}>
+
                       {temperatureInFahrenheit.toFixed(1)}°F
                      
                     </Text>
@@ -221,10 +251,8 @@ export default function App() {
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
                   
-                  onPress={moveServo}
-                  //onPress={() => console.log('Feeding Button pressed')}
-
-
+                  //onPress={moveServo}
+                  onPress={() => console.log('Feeding Button pressed')}
 
                 >
                   <Image
