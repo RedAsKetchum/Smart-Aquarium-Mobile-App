@@ -32,6 +32,9 @@ const RootLayout = () => {
 
       {/* Settings Screen */}
       <Stack.Screen name="settings" options={{ headerShown: false }} />
+
+      {/* LED Screen */}
+      <Stack.Screen name="ledSetting" options={{ headerShown: false }} />
     </Stack>
   );
 };
