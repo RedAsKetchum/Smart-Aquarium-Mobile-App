@@ -79,7 +79,7 @@ const fetchSensorData = async () => {
       const startLongPolling = () => {
         fetchSensorData();
         // Poll every 5 seconds (or adjust as needed)
-        setTimeout(startLongPolling, 5000);
+        setTimeout(startLongPolling, 12000);
       };
 
       useEffect(() => {
@@ -204,8 +204,8 @@ const fetchSensorData = async () => {
                 {() => (
                   <View style={styles.centerTextContainer}>
                     <Text style={styles.temperatureText}>
-
-                      {temperatureInFahrenheit.toFixed(1)}°F
+                      
+                      {temperatureInFahrenheit.toFixed(0)}°F
                      
                     </Text>
                   </View>
