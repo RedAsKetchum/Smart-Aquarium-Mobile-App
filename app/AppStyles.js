@@ -72,4 +72,49 @@ export const styles = StyleSheet.create({
   bottomSheetHandle: {
     display: 'none',
   },
+
+  appContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+  },
+  gaugeContainer: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  svgContainer: {
+    backgroundColor: 'transparent',
+  },
+  temperatureText: {
+    position: 'absolute',
+    top: 160,  // Positioned below the gauge
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'black'
+  },
+
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  centerTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  temperatureText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#ff4500',  // Match the gauge color
+  },
+
 });
+
