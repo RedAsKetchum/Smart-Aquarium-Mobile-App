@@ -227,7 +227,7 @@ const fetchSensorData = async () => {
                     size={110}
                     width={20}
                     fill={(temperatureInFahrenheit / maxTemperature) * 100}
-                    tintColor="#ff4500"
+                    tintColor="#ff1a1a"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
                     arcSweepAngle={270}
@@ -236,7 +236,7 @@ const fetchSensorData = async () => {
                   >
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff4500' }}>
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
                           {temperatureInFahrenheit.toFixed(0)}
                         </StyledText>
                       </StyledView>
@@ -244,7 +244,7 @@ const fetchSensorData = async () => {
                   </AnimatedCircularProgress>
 
                     {/* Small box below the gauge for pH level */}
-                    <StyledView className="mt-2 px-2 py-1 bg-gray-200 rounded">
+                    <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">pH level</StyledText>
                     </StyledView>
                   </StyledView>
@@ -256,7 +256,7 @@ const fetchSensorData = async () => {
                     size={150}
                     width={20}
                     fill={(temperatureInFahrenheit / maxTemperature) * 100}
-                    tintColor="#ff4500"
+                    tintColor="#cc00ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
                     arcSweepAngle={270}
@@ -265,7 +265,7 @@ const fetchSensorData = async () => {
                   >
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff4500' }}>
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#cc00ff' }}>
                           {temperatureInFahrenheit.toFixed(0)}°F
                         </StyledText>
                       </StyledView>
@@ -273,7 +273,7 @@ const fetchSensorData = async () => {
                   </AnimatedCircularProgress>
                   </StyledView>
                     {/* Small box below the gauge for pH level */}
-                    <StyledView className="mt-2 px-2 py-1 bg-gray-200 rounded">
+                    <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">Temperature</StyledText>
                     </StyledView>
                   </StyledView>
@@ -284,7 +284,7 @@ const fetchSensorData = async () => {
                     size={110}
                     width={20}
                     fill={(temperatureInFahrenheit / maxTemperature) * 100}
-                    tintColor="#ff4500"
+                    tintColor="#1a53ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
                     arcSweepAngle={270}
@@ -293,14 +293,14 @@ const fetchSensorData = async () => {
                   >
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff4500' }}>
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
                           {temperatureInFahrenheit.toFixed(0)}
                         </StyledText>
                       </StyledView>
                     )}
                   </AnimatedCircularProgress>
                     {/* Small box below the gauge for pH level */}
-                    <StyledView className="mt-2 px-2 py-1 bg-gray-200 rounded">
+                    <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">Turbidity</StyledText>
                     </StyledView>
                   </StyledView>
