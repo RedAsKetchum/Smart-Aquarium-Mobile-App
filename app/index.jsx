@@ -6,11 +6,12 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
-import { styles } from './AppStyles';  // Importing the styles from the new file
-import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
+import { StatusBar } from 'expo-status-bar'; 
 import { useEffect, useState } from 'react';
 import {ActivityIndicator } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { styles } from './AppStyles'; //imports app styles for components using stylesheet
+import { styled } from 'nativewind';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
@@ -18,9 +19,12 @@ const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const FEED_KEY = 'temperature-sensor';  // Your feed key
 const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 
+const StyledView = styled(View);
+const StyledText = styled(Text);
+
 export default function App() {
  
-  //*****CONSTANTS*****/
+  //************************CONSTANTS**********************************/
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
@@ -173,10 +177,10 @@ const fetchSensorData = async () => {
             <View className="relative mt-5">
 
              {/* AQUARIUM'S STATUS PANEL*/}
-             <View className="bg-gray-50/40 w-full h-56 rounded-xl items-center p-7">
+             <View className="bg-gray-50/40 w-full h-60 rounded-xl items-center p-7">
 
         
-             <Text className="text-white text-2xl font-bold -mt-5 mb-3">Status</Text>
+             <Text className="text-white text-2xl font-bold -mt-5 mb-2">Status</Text>
               {/* <Text>ID: {sensorData.ID}</Text> */}
               {/* <Text>Sensor 1: {sensorData.Sensor1} - {sensorData.Sensor1Timestamp}</Text>
               <Text>Sensor 2: {sensorData.Sensor2} - {sensorData.Sensor2Timestamp}</Text>
@@ -186,10 +190,10 @@ const fetchSensorData = async () => {
                 <GradientGauge value={gaugeValue} maxValue={maxValue} />
               </View> */}
 
-        <View style={styles.container}>
-                
-                      <AnimatedCircularProgress
-                size={180}
+        {/* <View style={styles.container}> */}
+        {/* Temperature Gauge */}
+                      {/* <AnimatedCircularProgress 
+                size={120}
                 width={20}
 
                 fill={(temperatureInFahrenheit / maxTemperature) * 100}
@@ -197,9 +201,9 @@ const fetchSensorData = async () => {
                 tintColor="#ff4500"
                 backgroundColor="#d3d3d3"
                 lineCap="round"
-                arcSweepAngle={240}
-                rotation={240}
-                duration={800}
+                arcSweepAngle={270}
+                rotation={225}
+                duration={900}
               >
                 {() => (
                   <View style={styles.centerTextContainer}>
@@ -210,23 +214,111 @@ const fetchSensorData = async () => {
                     </Text>
                   </View>
                 )}
-              </AnimatedCircularProgress>
-            </View>
-         
+              </AnimatedCircularProgress> */}
+            {/* </View> */}
+
+                 {/* Gauge using nativewind */}
+                 <StyledView className="flex-row justify-between items-center">
+
+                 <StyledView className="items-center">
+
+                  {/*pH Gauge*/}
+                  <AnimatedCircularProgress
+                    size={110}
+                    width={20}
+                    fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                    tintColor="#ff4500"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff4500' }}>
+                          {temperatureInFahrenheit.toFixed(0)}
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+
+                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mt-2 px-2 py-1 bg-gray-200 rounded">
+                      <StyledText className="text-black font-semibold">pH level</StyledText>
+                    </StyledView>
+                  </StyledView>
+                  
+                  <StyledView className="items-center">
+                   {/*Temperature Gauge*/}
+                   <StyledView className="mx-2"> 
+                  <AnimatedCircularProgress
+                    size={150}
+                    width={20}
+                    fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                    tintColor="#ff4500"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff4500' }}>
+                          {temperatureInFahrenheit.toFixed(0)}°F
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+                  </StyledView>
+                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mt-2 px-2 py-1 bg-gray-200 rounded">
+                      <StyledText className="text-black font-semibold">Temperature</StyledText>
+                    </StyledView>
+                  </StyledView>
+
+                  <StyledView className="items-center">
+                  {/*Turbidity Gauge*/}
+                  <AnimatedCircularProgress
+                    size={110}
+                    width={20}
+                    fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                    tintColor="#ff4500"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff4500' }}>
+                          {temperatureInFahrenheit.toFixed(0)}
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mt-2 px-2 py-1 bg-gray-200 rounded">
+                      <StyledText className="text-black font-semibold">Turbidity</StyledText>
+                    </StyledView>
+                  </StyledView>
+                </StyledView>
              </View>
 
               {/* HISTORY BUTTON*/}
               <CustomButton
                 title="History"
                 handlePress={() => router.push('/history')}
-                containerStyles="w-full mt-7"
+                containerStyles="w-full mt-6"
               />
 
               {/* SETTINGS BUTTON */}
               <CustomButton
                 title="Settings"
                 handlePress={() => router.push('/settings')}
-                containerStyles="w-full mt-7"
+                containerStyles="w-full mt-5"
               />
             </View>
           </View>
