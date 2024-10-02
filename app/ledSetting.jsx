@@ -55,8 +55,8 @@ const ColorPickerComponent = () => {
     };
   }, []);
 
-  // Function to send the color data to ESP32
-  const sendColorToESP32 = (color, brightness) => {
+  // Function to send both color and brightness to ESP32
+  const sendColorAndBrightnessToESP32 = (color, brightness) => {
     const rgb = hexToRgb(color);
     if (rgb && mqttClient) {
       const { r, g, b } = rgb;
@@ -64,24 +64,12 @@ const ColorPickerComponent = () => {
       // Format the color message as "r,g,b"
       const colorMessage = `${Math.round(r * brightness)},${Math.round(g * brightness)},${Math.round(b * brightness)}`;
 
-      // Publish the color data to Adafruit IO
+      // Publish the color and brightness data to Adafruit IO
       const message = new Message(colorMessage);
       message.destinationName = ESP32_MQTT_TOPIC_COLOR;
       mqttClient.send(message);
 
-      console.log(`Color sent: ${colorMessage}`);
-    }
-  };
-
-  // Function to send the brightness data to ESP32
-  const sendBrightnessToESP32 = (brightness) => {
-    if (mqttClient) {
-      // Publish the brightness value to Adafruit IO
-      const message = new Message(brightness.toString());
-      message.destinationName = ESP32_MQTT_TOPIC_BRIGHTNESS;
-      mqttClient.send(message);
-
-      console.log(`Brightness sent: ${brightness}`);
+      console.log(`Color and brightness sent: ${colorMessage}`);
     }
   };
 
@@ -118,7 +106,7 @@ const ColorPickerComponent = () => {
             initialColor={selectedColor}
             onColorChange={color => {
               setSelectedColor(color);
-              sendColorToESP32(color, brightness);  // Send color and brightness
+              sendColorAndBrightnessToESP32(color, brightness);  // Send color and brightness together
             }}
             style={{width: 380, height: 400}} 
             sliderSize={35}
@@ -130,7 +118,7 @@ const ColorPickerComponent = () => {
               onPress={() => {
                 const newBrightness = Math.max(0, brightness - 0.1); 
                 setBrightness(newBrightness);
-                sendBrightnessToESP32(newBrightness);  // Send brightness separately
+                sendColorAndBrightnessToESP32(selectedColor, newBrightness);  // Send color and brightness together
               }}
             >
               <Icon name="sunny" size={30} color="#000" /> 
@@ -145,7 +133,7 @@ const ColorPickerComponent = () => {
                 value={brightness}
                 onValueChange={(value) => {
                   setBrightness(value);
-                  sendBrightnessToESP32(value);  // Send brightness separately
+                  sendColorAndBrightnessToESP32(selectedColor, value);  // Send color and brightness together
                 }}
                 minimumTrackTintColor="#FFFFFF" 
                 maximumTrackTintColor="#FFFFFF" 
@@ -156,7 +144,7 @@ const ColorPickerComponent = () => {
               onPress={() => {
                 const newBrightness = Math.min(1, brightness + 0.1); 
                 setBrightness(newBrightness);
-                sendBrightnessToESP32(newBrightness);  // Send brightness separately
+                sendColorAndBrightnessToESP32(selectedColor, newBrightness);  // Send color and brightness together
               }}
             >
               <Icon name="sunny" size={40} color="#000" />
