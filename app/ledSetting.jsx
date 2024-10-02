@@ -1,58 +1,90 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ImageBackground, Image, StatusBar } from 'react-native';
-import WheelColorPicker from 'react-native-wheel-color-picker';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
 import Slider from '@react-native-community/slider';
+import WheelColorPicker from 'react-native-wheel-color-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { styles } from './AppStyles';  // Importing the styles from the new file
 import { useRouter } from 'expo-router';
+import { Client } from 'paho-mqtt';  // Import Paho MQTT
 
-export const turnOnLED = () => {
-  fetch(`${ESP32_IP}/turnOn`)
-  .then(response => response.text())
-  .then(data => console.log("LED turned on: ", data))
-  .catch(error => console.error('Error', error));
-}
+const AIO_USERNAME = 'jazzfaye7';  // Adafruit IO username
+const AIO_KEY = 'aio_XHzM43BcDX46OMZ5ZoG0DYoN6zDr';  // Adafruit IO key
+const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define Adafruit IO topic for color
+const ESP32_MQTT_TOPIC_BRIGHTNESS = `${AIO_USERNAME}/feeds/led-brightness`;  // Define Adafruit IO topic for brightness
 
-export const turnOffLED = () => {
-  fetch(`${ESP32_IP}/turnOff`)
-    .then(response => response.text())
-    .then(data => console.log("LED turned off: ", data))  // Fixed log message
-    .catch(error => console.error('Error', error));
-};
-
-const ESP32_IP = 'http://192.168.1.47'; // ESP32 IP address
+const websocketUrl = 'wss://io.adafruit.com/mqtt';  // WebSocket URL for Adafruit IO
 
 const ColorPickerComponent = () => {
-  const router = useRouter(); // Go back to previous page
-  const [selectedColor, setSelectedColor] = useState('#ff0000'); // Initial color set to red
-  const [brightness, setBrightness] = useState(1); // Initial brightness (1 for full brightness)
+  const router = useRouter();
+  const [selectedColor, setSelectedColor] = useState('#ff0000');  // Initial color set to red
+  const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
+  const [mqttClient, setMqttClient] = useState(null);
+
+  useEffect(() => {
+    // Initialize the MQTT client using Paho
+    const client = new Client('io.adafruit.com', 443, 'react-native-mqtt-client');  // Client ID can be any unique string
+
+    client.onConnectionLost = (responseObject) => {
+      if (responseObject.errorCode !== 0) {
+        console.log('Connection lost:', responseObject.errorMessage);
+      }
+    };
+
+    client.onMessageArrived = (message) => {
+      console.log('Message arrived:', message.payloadString);
+    };
+
+    // Connect to Adafruit IO using MQTT over WebSocket
+    client.connect({
+      useSSL: true,  // For secure WebSocket connections
+      userName: AIO_USERNAME,
+      password: AIO_KEY,
+      onSuccess: () => {
+        console.log('Connected to Adafruit IO via Paho MQTT WebSocket');
+        setMqttClient(client);
+      },
+      onFailure: (err) => {
+        console.error('Connection error:', err);
+      },
+    });
+
+    return () => {
+      if (client.isConnected()) {
+        client.disconnect();
+      }
+    };
+  }, []);
 
   const sendColorToESP32 = (color, brightness) => {
-    // Convert the hex color to RGB
     const rgb = hexToRgb(color);
-    if (rgb) {
+    if (rgb && mqttClient) {
       const { r, g, b } = rgb;
 
-      // Adjust the RGB values based on brightness
-      const adjustedR = Math.round(r * brightness);
-      const adjustedG = Math.round(g * brightness);
-      const adjustedB = Math.round(b * brightness);
-      const url = `${ESP32_IP}/setColor?r=${adjustedR}&g=${adjustedG}&b=${adjustedB}`;
-    
-      console.log(`Sending request to: ${url}`);
-  
-      // Send the color to the ESP32
-      fetch(`${ESP32_IP}/setColor?r=${adjustedR}&g=${adjustedG}&b=${adjustedB}`)
-        .then(response => response.text())
-        .then(data => console.log(data))
-        .catch(error => console.error('Error:', error));
+      // Format the color message as "r,g,b"
+      const colorMessage = `${Math.round(r * brightness)},${Math.round(g * brightness)},${Math.round(b * brightness)}`;
+
+      // Publish the color data to Adafruit IO
+      const message = new Client.Message(colorMessage);  // Corrected to use Client.Message
+      message.destinationName = ESP32_MQTT_TOPIC_COLOR;
+      mqttClient.send(message);
+
+      console.log(`Color sent: ${colorMessage}`);
+    }
+  };
+
+  const sendBrightnessToESP32 = (brightness) => {
+    if (mqttClient) {
+      // Publish the brightness value to Adafruit IO
+      const message = new Client.Message(brightness.toString());  // Corrected to use Client.Message
+      message.destinationName = ESP32_MQTT_TOPIC_BRIGHTNESS;
+      mqttClient.send(message);
+
+      console.log(`Brightness sent: ${brightness}`);
     }
   };
 
   const hexToRgb = (hex) => {
-    // Convert hex to RGB
     const bigint = parseInt(hex.slice(1), 16);
     const r = (bigint >> 16) & 255;
     const g = (bigint >> 8) & 255;
@@ -61,50 +93,35 @@ const ColorPickerComponent = () => {
   };
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaView className="bg-primary h-full">
-        <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
-                {/* Back button */}
-                <TouchableOpacity  
-                    onPress={() => router.back()}
-                    style={{padding: 10, marginLeft: 10}}>
-                    <Icon 
-                      name="arrow-back"  
-                      size={30} 
-                      color="white"  
-                    />
-                </TouchableOpacity>
-        </View>
-        <View style={{ justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
-          <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
-        </View>
-        <View style={{flex: 0.8, justifyContent: 'center', alignItems: 'center'}}>
-        <WheelColorPicker  
-          initialColor={selectedColor}
-          onColorChange={color => {
-            setSelectedColor(color);
-            sendColorToESP32(color, brightness); 
-          }}
-          style={{width: 380, height: 400}} 
-          sliderSize={35}
-        />
-        {/* Brightness Controls */}
-        <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 30, width: 380}}>
-          {/* Decrease Brightness */}
-            <TouchableOpacity 
-              onPress={() => {
-                const newBrightness = Math.max(0, brightness - 0.1); 
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView>
+        <ImageBackground source={require('../assets/images/gradient.png')} style={{ flex: 1 }}>
+          <View style={{ padding: 10 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{ padding: 10 }}>
+              <Icon name="arrow-back" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+          <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>LED Setting</Text>
+          <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+            <WheelColorPicker
+              initialColor={selectedColor}
+              onColorChange={color => {
+                setSelectedColor(color);
+                sendColorToESP32(color, brightness);
+              }}
+              style={{ width: 300, height: 300 }}
+            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 30 }}>
+              <TouchableOpacity onPress={() => {
+                const newBrightness = Math.max(0, brightness - 0.1);
                 setBrightness(newBrightness);
                 sendColorToESP32(selectedColor, newBrightness);
-              }}
-            >
-              <Icon name="sunny" size={30} color="#000" /> 
-            </TouchableOpacity>
-            {/* Slider */}
-            <View style={{position: 'relative', flex: 1, height: 40, justifyContent: 'center'}}>
+                sendBrightnessToESP32(newBrightness);
+              }}>
+                <Icon name="sunny" size={30} color="#000" />
+              </TouchableOpacity>
               <Slider
-                style={{width: '100%'}}
+                style={{ width: 200, marginHorizontal: 10 }}
                 minimumValue={0}
                 maximumValue={1}
                 step={0.01}
@@ -112,29 +129,25 @@ const ColorPickerComponent = () => {
                 onValueChange={(value) => {
                   setBrightness(value);
                   sendColorToESP32(selectedColor, value);
+                  sendBrightnessToESP32(value);
                 }}
-                minimumTrackTintColor="#FFFFFF" // Change the color for the filled section (traced part)
-                maximumTrackTintColor="#FFFFFF" // Change the color for the unfilled section
-              />         
-            </View>
-            {/* Increase Brightness */}
-            <TouchableOpacity 
-              onPress={() => {
-                const newBrightness = Math.min(1, brightness + 0.1); 
+                minimumTrackTintColor="#FFFFFF"
+                maximumTrackTintColor="#FFFFFF"
+              />
+              <TouchableOpacity onPress={() => {
+                const newBrightness = Math.min(1, brightness + 0.1);
                 setBrightness(newBrightness);
                 sendColorToESP32(selectedColor, newBrightness);
-              }}
-            >
-              <Icon name="sunny" size={40} color="#000" />
-            </TouchableOpacity>
-        </View>
-      </View>
+                sendBrightnessToESP32(newBrightness);
+              }}>
+                <Icon name="sunny" size={40} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ImageBackground>
       </SafeAreaView>
     </GestureHandlerRootView>
-      
-    
   );
 };
-
 
 export default ColorPickerComponent;
