@@ -31,14 +31,16 @@ export default function App() {
   const sheetRef = useRef(null);
   const snapPoints = ['15%', '32%'];
 
-  const [temperatureSensor, setTemperatureSensor] = useState(null);
+  const [temperatureSensor, setTemperatureSensor] = useState(-1);
+  const [pHSensor, setpHSensor] = useState(-1);
+  const [turbiditySensor, setTurbidity] = useState(-1);
   const [loading, setLoading] = useState(true);
 
   //Used to Display Data on the Homescreen Gauge
   const temperatureInFahrenheit = (temperatureSensor);
    
    // Adjust the key based on your data structure
-   const maxTemperature = 100; // Max value of the gauge
+   const maxGauge = 100; // Max value of the gauge
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -58,7 +60,8 @@ const fetchSensorData = async () => {
 
     if (data.value) {
       const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
-
+      
+      //Check for Sensor 1 "Temperature Sensor" value
       if (sensorData.Sensor1 !== null && sensorData.Sensor1 !== undefined) {
         const sensorValue = parseFloat(sensorData.Sensor1);  // Convert to number
         if (!isNaN(sensorValue)) {
@@ -67,11 +70,31 @@ const fetchSensorData = async () => {
           console.error("Sensor1 data is not a valid number:", sensorData.Sensor1);
           setTemperatureSensor(null);  // Set to null if invalid
         }
-      } else {
+      }
+        else {
         console.error("Sensor1 is null or undefined.");
         setTemperatureSensor(null);  // Set to null if no valid value is found
       }
+
+      // Check for Sensor2 "pH Sensor" value
+      if (sensorData.Sensor2 !== null && sensorData.Sensor2 !== undefined) {
+        const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
+        if (!isNaN(sensorValue2)) {
+          // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
+          setpHSensor(sensorValue2);  // Update state with the numeric value
+
+        } else {
+          console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
+          // Optionally, handle invalid Sensor2 data here
+          setpHSensor(null); 
+        }
+      } else {
+        console.error("Sensor2 is null or undefined.");
+        // Optionally, handle null or undefined Sensor2 here
+        setpHSensor(null); 
+      }
     }
+
   } catch (error) {
     console.error('Error fetching sensor data:', error);
   } finally {
@@ -196,7 +219,7 @@ const fetchSensorData = async () => {
                 size={120}
                 width={20}
 
-                fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                fill={(temperatureInFahrenheit / maxGauge) * 100}
 
                 tintColor="#ff4500"
                 backgroundColor="#d3d3d3"
@@ -226,7 +249,7 @@ const fetchSensorData = async () => {
                   <AnimatedCircularProgress
                     size={110}
                     width={20}
-                    fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                    fill={(pHSensor / maxGauge) * 100}
                     tintColor="#ff1a1a"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -237,7 +260,8 @@ const fetchSensorData = async () => {
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
                         <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
-                          {temperatureInFahrenheit.toFixed(0)}
+                          {pHSensor.toFixed(2)} 
+                          {/* {pHSensor.toFixed(0)}  */}
                         </StyledText>
                       </StyledView>
                     )}
@@ -255,7 +279,7 @@ const fetchSensorData = async () => {
                   <AnimatedCircularProgress
                     size={150}
                     width={20}
-                    fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                    fill={(temperatureInFahrenheit / maxGauge) * 100}
                     tintColor="#cc00ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -283,7 +307,7 @@ const fetchSensorData = async () => {
                   <AnimatedCircularProgress
                     size={110}
                     width={20}
-                    fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                    fill={(temperatureInFahrenheit / maxGauge) * 100}
                     tintColor="#1a53ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -400,13 +424,13 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Turbidity Button */}
+                {/* Bubbles Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Turbidity pressed')}
+                  onPress={() => console.log('Bubbles pressed')}
                 >
                   <Image
-                    source={require('../assets/icons/turbidityButton.png')}  
+                    source={require('../assets/icons/bubblesButton.png')}  
                     style={styles.imageButton}  
                   />
                 </TouchableOpacity>
