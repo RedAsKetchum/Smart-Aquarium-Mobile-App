@@ -68,12 +68,12 @@ const fetchSensorData = async () => {
           setTemperatureSensor(sensorValue);  // Update state with the numeric value
         } else {
           console.error("Sensor1 data is not a valid number:", sensorData.Sensor1);
-          setTemperatureSensor(null);  // Set to null if invalid
+          setTemperatureSensor(-1);  // Set to null if invalid
         }
       }
         else {
         console.error("Sensor1 is null or undefined.");
-        setTemperatureSensor(null);  // Set to null if no valid value is found
+        setTemperatureSensor(-1);  // Set to null if no valid value is found
       }
 
       // Check for Sensor2 "pH Sensor" value
@@ -86,12 +86,30 @@ const fetchSensorData = async () => {
         } else {
           console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
           // Optionally, handle invalid Sensor2 data here
-          setpHSensor(null); 
+          setpHSensor(-1); 
         }
       } else {
         console.error("Sensor2 is null or undefined.");
         // Optionally, handle null or undefined Sensor2 here
-        setpHSensor(null); 
+        setpHSensor(-1); 
+      }
+
+      // Check for Sensor3 "Turbidity Sensor" value
+      if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
+        const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
+        if (!isNaN(sensorValue3)) {
+          // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
+          setTurbidity(sensorValue3);  // Update state with the numeric value
+
+        } else {
+          console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
+          // Optionally, handle invalid Sensor3 data here
+          setTurbidity(-1); 
+        }
+      } else {
+        console.error("Sensor3 is null or undefined.");
+        // Optionally, handle null or undefined Sensor3 here
+        setTurbidity(-1); 
       }
     }
 
@@ -307,7 +325,7 @@ const fetchSensorData = async () => {
                   <AnimatedCircularProgress
                     size={110}
                     width={20}
-                    fill={(temperatureInFahrenheit / maxGauge) * 100}
+                    fill={(turbiditySensor / maxGauge) * 100}
                     tintColor="#1a53ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -318,7 +336,7 @@ const fetchSensorData = async () => {
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
                         <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
-                          {temperatureInFahrenheit.toFixed(0)}
+                          {turbiditySensor.toFixed(0)}
                         </StyledText>
                       </StyledView>
                     )}
