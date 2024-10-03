@@ -115,6 +115,18 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ff4500',  // Match the gauge color
   },
+  buttons: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    paddingVertical: 15, 
+    paddingHorizontal: 20, 
+    borderRadius: 15, 
+    marginTop: 20, 
+    width: '90%', 
+    height: 105,
+    alignSelf: 'center', // Center the button inside ScrollView
+    justifyContent: 'center', 
+    alignItems: 'center'
+  },
 
 });
 
