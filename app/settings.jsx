@@ -7,11 +7,6 @@ import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import { styles } from './AppStyles';
-import Icon from 'react-native-vector-icons/Ionicons';
-
-
-
 const settings = () => {
   const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
   const today = new Date();
