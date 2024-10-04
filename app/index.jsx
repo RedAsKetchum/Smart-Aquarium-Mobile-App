@@ -12,11 +12,13 @@ import {ActivityIndicator } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { styles } from './AppStyles'; //imports app styles for components using stylesheet
 import { styled } from 'nativewind';
+import axios from 'axios'; //for servo motor control
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const FEED_KEY = 'temperature-sensor';  // Your feed key
+const FEED_KEY2 = 'servo-control';  // Your feed key
 const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 
 const StyledView = styled(View);
@@ -204,6 +206,26 @@ const fetchSensorData = async () => {
   //   }
   // };
 
+  const handleActivateServo = async () => {
+    const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
+    
+    try {
+      // Send the "activate" command to the Adafruit IO feed
+      await axios.post(url, {
+        value: "activate"  // This value will be used by your ESP32 code to activate the servo
+      }, {
+        headers: {
+          "X-AIO-Key": AIO_KEY,
+          "Content-Type": "application/json"
+        }
+      });
+
+      console.log("Servo activation command sent.");
+    } catch (error) {
+      console.error("Error sending command:", error);
+    }
+  };
+
   return (
 
     // HomeScreen General Design
@@ -222,41 +244,6 @@ const fetchSensorData = async () => {
 
         
              <Text className="text-white text-2xl font-bold -mt-5 mb-2">Status</Text>
-              {/* <Text>ID: {sensorData.ID}</Text> */}
-              {/* <Text>Sensor 1: {sensorData.Sensor1} - {sensorData.Sensor1Timestamp}</Text>
-              <Text>Sensor 2: {sensorData.Sensor2} - {sensorData.Sensor2Timestamp}</Text>
-              <Text>Sensor 3: {sensorData.Sensor3} - {sensorData.Sensor3Timestamp}</Text> */}
-
-              {/* <View style={styles.gaugeContainer}>
-                <GradientGauge value={gaugeValue} maxValue={maxValue} />
-              </View> */}
-
-        {/* <View style={styles.container}> */}
-        {/* Temperature Gauge */}
-                      {/* <AnimatedCircularProgress 
-                size={120}
-                width={20}
-
-                fill={(temperatureInFahrenheit / maxGauge) * 100}
-
-                tintColor="#ff4500"
-                backgroundColor="#d3d3d3"
-                lineCap="round"
-                arcSweepAngle={270}
-                rotation={225}
-                duration={900}
-              >
-                {() => (
-                  <View style={styles.centerTextContainer}>
-                    <Text style={styles.temperatureText}>
-                      
-                      {temperatureInFahrenheit.toFixed(0)}°F
-                     
-                    </Text>
-                  </View>
-                )}
-              </AnimatedCircularProgress> */}
-            {/* </View> */}
 
                  {/* Gauge using nativewind */}
                  <StyledView className="flex-row justify-between items-center">
@@ -386,8 +373,12 @@ const fetchSensorData = async () => {
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
                   
                   //onPress={moveServo}
-                  onPress={() => console.log('Feeding Button pressed')}
-
+                  //onPress={() => console.log('Feeding Button pressed')}
+                  onPress={() => {
+                    handleActivateServo();   // Call the function to activate the servo
+                    console.log('Feeding button pressed.');   // Log the button press
+                  }
+                }
                 >
                   <Image
                     source={require('../assets/icons/feedingButton.png')}
@@ -398,7 +389,7 @@ const fetchSensorData = async () => {
                 {/* Camera Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Camera Button pressed')}
+                  onPress={() => console.log('Camera button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/cameraButton.png')}  
@@ -409,7 +400,7 @@ const fetchSensorData = async () => {
                 {/* pH Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('pH Button pressed')}
+                  onPress={() => console.log('pH button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/phButton.png')}  
@@ -423,7 +414,7 @@ const fetchSensorData = async () => {
                 {/* Light Button Needs to be fixed*/}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Light Button pressed')}
+                  onPress={() => console.log('Light button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/lightButton.png')}
@@ -434,7 +425,7 @@ const fetchSensorData = async () => {
                 {/* Calendar Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Calendar Button pressed')}
+                  onPress={() => console.log('Calendar button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/calendarButton.png')}  
@@ -445,7 +436,7 @@ const fetchSensorData = async () => {
                 {/* Bubbles Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Bubbles pressed')}
+                  onPress={() => console.log('Bubbles button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/bubblesButton.png')}  
