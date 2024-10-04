@@ -1,21 +1,39 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-
-
 const settings = () => {
-  const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
-  const today = new Date();
-  const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
-  const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
-  const sheetRef = useRef(null);
-  const snapPoints = ['10%', '40%'];
+
+  // Function to send reboot command to Adafruit IO
+  const sendRebootCommand = async () => {
+    try {
+      const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-AIO-Key': 'aio_XHzM43BcDX46OMZ5ZoG0DYoN6zDr',  // Your AIO key
+        },
+        body: JSON.stringify({
+          value: "reboot",  // The value you want to send to the feed
+        }),
+      });
+
+      const responseData = await response.json();  // Parse the response data
+      console.log(responseData);  // Log the full response
+
+      if (response.ok) {
+        console.log('Reboot command sent');
+      } else {
+        console.error('Failed to send reboot command:', responseData);
+      }
+    } catch (error) {
+      console.error('Error sending reboot command:', error);
+    }
+  };
 
   return (
     <GestureHandlerRootView style={styles.container}>  
@@ -57,7 +75,7 @@ const settings = () => {
           </TouchableOpacity>
           {/* Reboot */}
           <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+            onPress={sendRebootCommand}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Reboot
             </Text>
