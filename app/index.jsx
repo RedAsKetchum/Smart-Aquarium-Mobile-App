@@ -6,12 +6,12 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
-import { styles } from './AppStyles';  // Importing the styles from the new file
-import schedulePage from './schedulePage';
-import { StatusBar } from 'expo-status-bar'; // Corrected import for Expo
+import { StatusBar } from 'expo-status-bar'; 
 import { useEffect, useState } from 'react';
 import {ActivityIndicator } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { styles } from './AppStyles'; //imports app styles for components using stylesheet
+import { styled } from 'nativewind';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
@@ -19,23 +19,28 @@ const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const FEED_KEY = 'temperature-sensor';  // Your feed key
 const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 
+const StyledView = styled(View);
+const StyledText = styled(Text);
+
 export default function App() {
  
-  //*****CONSTANTS*****/
+  //************************CONSTANTS**********************************/
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['15%', '32%'];
 
-  const [temperatureSensor, setTemperatureSensor] = useState(null);
+  const [temperatureSensor, setTemperatureSensor] = useState(-1);
+  const [pHSensor, setpHSensor] = useState(-1);
+  const [turbiditySensor, setTurbidity] = useState(-1);
   const [loading, setLoading] = useState(true);
 
   //Used to Display Data on the Homescreen Gauge
   const temperatureInFahrenheit = (temperatureSensor);
    
    // Adjust the key based on your data structure
-   const maxTemperature = 100; // Max value of the gauge
+   const maxGauge = 100; // Max value of the gauge
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -55,20 +60,59 @@ const fetchSensorData = async () => {
 
     if (data.value) {
       const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
-
+      
+      //Check for Sensor 1 "Temperature Sensor" value
       if (sensorData.Sensor1 !== null && sensorData.Sensor1 !== undefined) {
         const sensorValue = parseFloat(sensorData.Sensor1);  // Convert to number
         if (!isNaN(sensorValue)) {
           setTemperatureSensor(sensorValue);  // Update state with the numeric value
         } else {
           console.error("Sensor1 data is not a valid number:", sensorData.Sensor1);
-          setTemperatureSensor(null);  // Set to null if invalid
+          setTemperatureSensor(-1);  // Set to null if invalid
+        }
+      }
+        else {
+        console.error("Sensor1 is null or undefined.");
+        setTemperatureSensor(-1);  // Set to null if no valid value is found
+      }
+
+      // Check for Sensor2 "pH Sensor" value
+      if (sensorData.Sensor2 !== null && sensorData.Sensor2 !== undefined) {
+        const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
+        if (!isNaN(sensorValue2)) {
+          // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
+          setpHSensor(sensorValue2);  // Update state with the numeric value
+
+        } else {
+          console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
+          // Optionally, handle invalid Sensor2 data here
+          setpHSensor(-1); 
         }
       } else {
-        console.error("Sensor1 is null or undefined.");
-        setTemperatureSensor(null);  // Set to null if no valid value is found
+        console.error("Sensor2 is null or undefined.");
+        // Optionally, handle null or undefined Sensor2 here
+        setpHSensor(-1); 
+      }
+
+      // Check for Sensor3 "Turbidity Sensor" value
+      if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
+        const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
+        if (!isNaN(sensorValue3)) {
+          // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
+          setTurbidity(sensorValue3);  // Update state with the numeric value
+
+        } else {
+          console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
+          // Optionally, handle invalid Sensor3 data here
+          setTurbidity(-1); 
+        }
+      } else {
+        console.error("Sensor3 is null or undefined.");
+        // Optionally, handle null or undefined Sensor3 here
+        setTurbidity(-1); 
       }
     }
+
   } catch (error) {
     console.error('Error fetching sensor data:', error);
   } finally {
@@ -174,10 +218,10 @@ const fetchSensorData = async () => {
             <View className="relative mt-5">
 
              {/* AQUARIUM'S STATUS PANEL*/}
-             <View className="bg-gray-50/40 w-full h-56 rounded-xl items-center p-7">
+             <View className="bg-gray-50/40 w-full h-60 rounded-xl items-center p-7">
 
         
-             <Text className="text-white text-2xl font-bold -mt-5 mb-3">Status</Text>
+             <Text className="text-white text-2xl font-bold -mt-5 mb-2">Status</Text>
               {/* <Text>ID: {sensorData.ID}</Text> */}
               {/* <Text>Sensor 1: {sensorData.Sensor1} - {sensorData.Sensor1Timestamp}</Text>
               <Text>Sensor 2: {sensorData.Sensor2} - {sensorData.Sensor2Timestamp}</Text>
@@ -187,20 +231,20 @@ const fetchSensorData = async () => {
                 <GradientGauge value={gaugeValue} maxValue={maxValue} />
               </View> */}
 
-        <View style={styles.container}>
-                
-                      <AnimatedCircularProgress
-                size={180}
+        {/* <View style={styles.container}> */}
+        {/* Temperature Gauge */}
+                      {/* <AnimatedCircularProgress 
+                size={120}
                 width={20}
 
-                fill={(temperatureInFahrenheit / maxTemperature) * 100}
+                fill={(temperatureInFahrenheit / maxGauge) * 100}
 
                 tintColor="#ff4500"
                 backgroundColor="#d3d3d3"
                 lineCap="round"
-                arcSweepAngle={240}
-                rotation={240}
-                duration={800}
+                arcSweepAngle={270}
+                rotation={225}
+                duration={900}
               >
                 {() => (
                   <View style={styles.centerTextContainer}>
@@ -211,23 +255,112 @@ const fetchSensorData = async () => {
                     </Text>
                   </View>
                 )}
-              </AnimatedCircularProgress>
-            </View>
-         
+              </AnimatedCircularProgress> */}
+            {/* </View> */}
+
+                 {/* Gauge using nativewind */}
+                 <StyledView className="flex-row justify-between items-center">
+
+                 <StyledView className="items-center">
+
+                  {/*pH Gauge*/}
+                  <AnimatedCircularProgress
+                    size={110}
+                    width={20}
+                    fill={(pHSensor / maxGauge) * 100}
+                    tintColor="#ff1a1a"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
+                          {pHSensor.toFixed(2)} 
+                          {/* {pHSensor.toFixed(0)}  */}
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+
+                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
+                      <StyledText className="text-black font-semibold">pH level</StyledText>
+                    </StyledView>
+                  </StyledView>
+                  
+                  <StyledView className="items-center">
+                   {/*Temperature Gauge*/}
+                   <StyledView className="mx-2"> 
+                  <AnimatedCircularProgress
+                    size={150}
+                    width={20}
+                    fill={(temperatureInFahrenheit / maxGauge) * 100}
+                    tintColor="#cc00ff"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#cc00ff' }}>
+                          {temperatureInFahrenheit.toFixed(0)}°F
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+                  </StyledView>
+                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
+                      <StyledText className="text-black font-semibold">Temperature</StyledText>
+                    </StyledView>
+                  </StyledView>
+
+                  <StyledView className="items-center">
+                  {/*Turbidity Gauge*/}
+                  <AnimatedCircularProgress
+                    size={110}
+                    width={20}
+                    fill={(turbiditySensor / maxGauge) * 100}
+                    tintColor="#1a53ff"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
+                          {turbiditySensor.toFixed(0)}
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
+                      <StyledText className="text-black font-semibold">Turbidity</StyledText>
+                    </StyledView>
+                  </StyledView>
+                </StyledView>
              </View>
 
               {/* HISTORY BUTTON*/}
               <CustomButton
                 title="History"
                 handlePress={() => router.push('/history')}
-                containerStyles="w-full mt-7"
+                containerStyles="w-full mt-6"
               />
 
               {/* SETTINGS BUTTON */}
               <CustomButton
                 title="Settings"
                 handlePress={() => router.push('/settings')}
-                containerStyles="w-full mt-7"
+                containerStyles="w-full mt-5"
               />
             </View>
           </View>
@@ -309,13 +442,13 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Turbidity Button */}
+                {/* Bubbles Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Turbidity pressed')}
+                  onPress={() => console.log('Bubbles pressed')}
                 >
                   <Image
-                    source={require('../assets/icons/turbidityButton.png')}  
+                    source={require('../assets/icons/bubblesButton.png')}  
                     style={styles.imageButton}  
                   />
                 </TouchableOpacity>

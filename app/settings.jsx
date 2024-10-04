@@ -1,10 +1,13 @@
 import React, { useRef } from 'react';
-import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
+import Icon from 'react-native-vector-icons/Ionicons';
+
+import { styles } from './AppStyles';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 
@@ -19,50 +22,60 @@ const settings = () => {
  
   return (
     <GestureHandlerRootView style={styles.container}>  
-    <SafeAreaView className="bg-primary h-full">
-      <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        <View>
-          {/* Back button */}
-          <TouchableOpacity  
+      <SafeAreaView className="bg-primary h-full">
+        <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
+        {/* Back button */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
+          <TouchableOpacity 
             onPress={() => router.push('/')} 
-            style={{
-            top: 10,  
-            left: 20,}}>
-            <Icon 
-              name="arrow-back"  
-              size={30} 
-              color="white"  
-            />
+            style={{ padding: 10 }}
+          >    
+            <Icon name="arrow-back" size={35} color="white" />
           </TouchableOpacity>
+          
         </View>
-      <ScrollView contentContainerStyle={{ height: '100%', marginTop: 40}}>
-        <View className="w-full min-[85vh] px-4">
-          <Text className="text-2xl font-bold text-white text-center">{dayName}</Text>
-          <Text className="text-xl font-semibold text-white text-center pl-2">{monthAndDay}</Text>
-          <View className="relative mt-5">
-            <CustomButton
-              title="Sensor Setting"
-              handlePress={() => router.push('/sensorSetting')}
-              containerStyles="w-full mt-7"
-            />
-            <CustomButton
-              title="Dispenser Setting"
-              handlePress={() => router.push('/dispenserSetting')}
-              containerStyles="w-full mt-7"
-            />
-             <CustomButton
-              title="LED Setting"
-              handlePress={() => router.push('/ledSetting')}
-              containerStyles="w-full mt-7"
-            />
-          </View>
-        </View>
-      </ScrollView>
+        <Text style={{ fontSize: 30, fontWeight: 'bold', color: 'white', textAlign: 'center'}}> Settings </Text>
+        <ScrollView contentContainerStyle={{ height: '100%', marginTop: 10 }}>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center', marginTop: 10}}> Connected to: </Text>
+          {/* Sensor Settings */}
+          <TouchableOpacity style={styles.buttons}
+            onPress={() => console.log("Sensor Settings Pressed")}>
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
+              Sensor Settings
+            </Text>
+          </TouchableOpacity>
+          {/* Dispenser Settings */}
+          <TouchableOpacity style={styles.buttons}
+            onPress={() => console.log("Sensor Settings Pressed")}>
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
+              Dispenser Settings
+            </Text>
+          </TouchableOpacity>
+          {/* LED Settings */}
+          <TouchableOpacity style={styles.buttons}
+            onPress={() => console.log("Sensor Settings Pressed")}>
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
+              LED Settings
+            </Text>
+          </TouchableOpacity>
+          {/* Reboot */}
+          <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]}
+            onPress={() => console.log("Sensor Settings Pressed")}>
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
+              Reboot
+            </Text>
+          </TouchableOpacity>
+           {/*Format */}
+           <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]}
+            onPress={() => console.log("Sensor Settings Pressed")}>
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>
+              Format
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
-      </GestureHandlerRootView>
+    </GestureHandlerRootView>
   );
 };
 
-
-export default settings
-
+export default settings;
