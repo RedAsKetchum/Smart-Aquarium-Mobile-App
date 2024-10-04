@@ -11,7 +11,7 @@ const settings = () => {
   // Function to send reboot command to Adafruit IO
   const sendRebootCommand = async () => {
     try {
-      const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
+      const response = await fetch('https://io.adafruit.com/api/v2/jazzfaye7/feeds/reboot-control/data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
