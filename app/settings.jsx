@@ -11,11 +11,11 @@ const settings = () => {
   // Function to send reboot command to Adafruit IO
   const sendRebootCommand = async () => {
     try {
-      const response = await fetch('https://io.adafruit.com/api/v2/jazzfaye7/feeds/reboot-control/data', {
+      const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-AIO-Key': 'aio_XHzM43BcDX46OMZ5ZoG0DYoN6zDr',  // Your AIO key
+          'X-AIO-Key': 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH',  // Your AIO key
         },
         body: JSON.stringify({
           value: "reboot",  // The value you want to send to the feed
