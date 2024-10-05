@@ -31,7 +31,7 @@ export default function App() {
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
-  const snapPoints = ['17%', '32%'];
+  const snapPoints = ['18%', '32%'];
 
   const [temperatureSensor, setTemperatureSensor] = useState(-1);
   const [pHSensor, setpHSensor] = useState(-1);
