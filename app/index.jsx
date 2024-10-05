@@ -285,7 +285,7 @@ const fetchSensorData = async () => {
                     size={150}
                     width={20}
                     fill={(temperatureInFahrenheit / maxGauge) * 100}
-                    tintColor="#cc00ff"
+                    tintColor="#9933ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
                     arcSweepAngle={270}
@@ -294,7 +294,7 @@ const fetchSensorData = async () => {
                   >
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#cc00ff' }}>
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#9933ff' }}>
                           {temperatureInFahrenheit.toFixed(0)}°F
                         </StyledText>
                       </StyledView>
