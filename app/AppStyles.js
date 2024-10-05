@@ -7,8 +7,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#161622',
   },
   imageButton: {
-    width: 77,  
-    height: 77, 
+    width: 76,  
+    height: 76, 
+    borderRadius: 38,  // Half of the width and height to make a perfect circle
   },
   backgroundImage: {
     flex: 1,
@@ -121,6 +122,18 @@ export const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#ff4500',  // Match the gauge color
+  },
+  buttons: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    paddingVertical: 15, 
+    paddingHorizontal: 20, 
+    borderRadius: 15, 
+    marginTop: 20, 
+    width: '90%', 
+    height: 105,
+    alignSelf: 'center', // Center the button inside ScrollView
+    justifyContent: 'center', 
+    alignItems: 'center'
   },
 
 });

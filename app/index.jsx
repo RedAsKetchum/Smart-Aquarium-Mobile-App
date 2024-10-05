@@ -393,7 +393,7 @@ const fetchSensorData = async () => {
                 >
                   <Image
                     source={require('../assets/icons/cameraButton.png')}  
-                    style={{width: 100, height: 100}}  
+                    style={{width: 99, height: 97}}  
                   />
                 </TouchableOpacity>
 
