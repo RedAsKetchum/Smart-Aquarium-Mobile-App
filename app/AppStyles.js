@@ -7,8 +7,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#161622',
   },
   imageButton: {
-    width: 77,  
-    height: 77, 
+    width: 76,  
+    height: 76, 
+    borderRadius: 38,  // Half of the width and height to make a perfect circle
   },
   backgroundImage: {
     flex: 1,
