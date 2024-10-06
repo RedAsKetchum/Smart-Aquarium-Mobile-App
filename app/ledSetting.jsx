@@ -9,10 +9,9 @@ import { styles } from './AppStyles';  // Importing the styles from the new file
 import { useRouter } from 'expo-router';
 import { Client, Message } from 'paho-mqtt';  // Correct import for Paho MQTT
 
-const AIO_USERNAME = 'jazzfaye7';  // Adafruit IO username
-const AIO_KEY = 'aio_XHzM43BcDX46OMZ5ZoG0DYoN6zDr';  // Adafruit IO key
+const AIO_USERNAME = 'RedAsKetchum';  // Adafruit IO username
+const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Adafruit IO key
 const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define Adafruit IO topic for color
-const ESP32_MQTT_TOPIC_BRIGHTNESS = `${AIO_USERNAME}/feeds/led-brightness`;  // Define Adafruit IO topic for brightness
 
 const ColorPickerComponent = () => {
   const router = useRouter();
