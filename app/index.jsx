@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -16,14 +16,13 @@ import { styled } from 'nativewind';
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
-const FEED_KEY = 'temperature-sensor';  // Your feed key
-const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
+const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`;  // Adafruit IO feed URL for controlling LED
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
 
 export default function App() {
- 
+
   //************************CONSTANTS**********************************/
   const today = new Date();
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
@@ -35,12 +34,52 @@ export default function App() {
   const [pHSensor, setpHSensor] = useState(-1);
   const [turbiditySensor, setTurbidity] = useState(-1);
   const [loading, setLoading] = useState(true);
+  const [isLightOn, setIsLightOn] = useState(false);  // State to track LED status
 
   //Used to Display Data on the Homescreen Gauge
   const temperatureInFahrenheit = (temperatureSensor);
-   
-   // Adjust the key based on your data structure
-   const maxGauge = 100; // Max value of the gauge
+  
+  // Adjust the key based on your data structure
+  const maxGauge = 100; // Max value of the gauge
+
+ // Function to toggle the LED light on/off
+const toggleLED = async () => {
+  // Toggle the LED state
+  const newState = isLightOn ? 'OFF' : 'ON';  
+
+  try {
+    const response = await fetch(LED_CONTROL_FEED, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-AIO-Key': AIO_KEY
+      },
+      body: JSON.stringify({
+        value: newState  // Send the new LED state (ON or OFF)
+      })
+    });
+
+    if (response.ok) {
+      // Toggle the local state only if the API request was successful
+      setIsLightOn(!isLightOn);  
+      Alert.alert('Success', `LED turned ${newState}`);
+    } else {
+      throw new Error('Failed to update Adafruit IO feed');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    Alert.alert('Error', 'Failed to connect to Adafruit IO');
+  }
+};
+
+// Add logging to check what's being sent to Adafruit IO
+const debugToggleLED = async () => {
+  const newState = isLightOn ? 'OFF' : 'ON';
+  console.log(`Sending LED state: ${newState}`); // Debug log
+
+  await toggleLED();  // Call the existing toggleLED function
+};
+
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -49,160 +88,7 @@ export default function App() {
           <View className="bg-gray-500 rounded-full w-10 h-1" />
         </View>
       );
-    };
-
-   // Function to fetch the latest sensor data from Adafruit IO
-const fetchSensorData = async () => {
-  try {
-    const response = await fetch(AIO_ENDPOINT);
-    const data = await response.json();
-    //console.log('Latest feed data:', data);
-
-    if (data.value) {
-      const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
-      
-      //Check for Sensor 1 "Temperature Sensor" value
-      if (sensorData.Sensor1 !== null && sensorData.Sensor1 !== undefined) {
-        const sensorValue = parseFloat(sensorData.Sensor1);  // Convert to number
-        if (!isNaN(sensorValue)) {
-          setTemperatureSensor(sensorValue);  // Update state with the numeric value
-        } else {
-          console.error("Sensor1 data is not a valid number:", sensorData.Sensor1);
-          setTemperatureSensor(-1);  // Set to null if invalid
-        }
-      }
-        else {
-        console.error("Sensor1 is null or undefined.");
-        setTemperatureSensor(-1);  // Set to null if no valid value is found
-      }
-
-      // Check for Sensor2 "pH Sensor" value
-      if (sensorData.Sensor2 !== null && sensorData.Sensor2 !== undefined) {
-        const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
-        if (!isNaN(sensorValue2)) {
-          // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
-          setpHSensor(sensorValue2);  // Update state with the numeric value
-
-        } else {
-          console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
-          // Optionally, handle invalid Sensor2 data here
-          setpHSensor(-1); 
-        }
-      } else {
-        console.error("Sensor2 is null or undefined.");
-        // Optionally, handle null or undefined Sensor2 here
-        setpHSensor(-1); 
-      }
-
-      // Check for Sensor3 "Turbidity Sensor" value
-      if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
-        const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
-        if (!isNaN(sensorValue3)) {
-          // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
-          setTurbidity(sensorValue3);  // Update state with the numeric value
-
-        } else {
-          console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
-          // Optionally, handle invalid Sensor3 data here
-          setTurbidity(-1); 
-        }
-      } else {
-        console.error("Sensor3 is null or undefined.");
-        // Optionally, handle null or undefined Sensor3 here
-        setTurbidity(-1); 
-      }
-    }
-
-  } catch (error) {
-    console.error('Error fetching sensor data:', error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-      // Function to handle long polling
-      const startLongPolling = () => {
-        fetchSensorData();
-        // Poll every 5 seconds (or adjust as needed)
-        setTimeout(startLongPolling, 12000);
-      };
-
-      useEffect(() => {
-        // Start long polling when the component mounts
-        startLongPolling();
-      }, []);
-
-        // Loading state handler (add this into your UI logic below)
-        if (temperatureSensor === null) {
-          return <ActivityIndicator size="large" color="#0000ff" />;
-        }
-  
-    // useEffect(() => {
-    //   // WebSocket URL with authentication
-    //   const socketUrl = `wss://io.adafruit.com/mqtt/${AIO_USERNAME}/feeds/${FEED_KEY}?x-aio-key=${AIO_KEY}`;
-
-    //   // Create a new WebSocket connection
-    //   const socket = new WebSocket(socketUrl);
-  
-    //   // Handle connection open
-    //   socket.onopen = () => {
-    //     console.log('WebSocket connected');
-    //     setConnected(true);
-    //   };
-  
-    //   // Handle incoming messages
-    //   socket.onmessage = (event) => {
-    //     try {
-    //       console.log('Raw message received:', event.data); // Log raw message
-    //       const messageData = JSON.parse(event.data);
-    //       console.log('Parsed message:', messageData); // Log parsed message
-    //       if (messageData && messageData.value) {
-    //         setTemperatureSensor(messageData.value);  // Update temperature sensor data
-    //       } else {
-    //         console.log('No value found in message data:', messageData);
-    //       }
-    //     } catch (err) {
-    //       console.error('Error parsing message data:', err);
-    //     }
-    //   };
-      
-    //   // Handle errors
-    //   socket.onerror = (error) => {
-    //     console.error('WebSocket error:', error);
-    //   };
-  
-    //   // Handle connection close
-    //   socket.onclose = (event) => {
-    //     console.log(`WebSocket closed: code = ${event.code}, reason = ${event.reason}`);
-    //     setConnected(false);
-    //   };
-      
-    //   // Cleanup WebSocket on unmount
-    //   return () => {
-    //     if (socket) {
-    //       socket.close();
-    //     }
-    //   };
-    // }, []);
-
-    // Function to move the servo 30 degrees forward and back
-  // const moveServo = async () => {
-  //   if (servoMoving) return; // Prevent multiple presses while moving
-
-  //   setServoMoving(true);
-  //   try {
-  //     const response = await fetch('http://192.168.50.35/move_servo'); // Replace with your ESP32 IP address
-  //     if (response.ok) {
-  //       Alert.alert('Success', 'Servo moved 50 degrees forward and back');
-  //     } else {
-  //       Alert.alert('Error', 'Failed to move servo');
-  //     }
-  //   } catch (error) {
-  //     Alert.alert('Error', `Failed to connect: ${error.message}`);
-  //   } finally {
-  //     setServoMoving(false); // Allow further presses after moving is done
-  //   }
-  // };
+  };
 
   return (
 
@@ -220,128 +106,88 @@ const fetchSensorData = async () => {
              {/* AQUARIUM'S STATUS PANEL*/}
              <View className="bg-gray-50/40 w-full h-60 rounded-xl items-center p-7">
 
-        
              <Text className="text-white text-2xl font-bold -mt-5 mb-2">Status</Text>
-              {/* <Text>ID: {sensorData.ID}</Text> */}
-              {/* <Text>Sensor 1: {sensorData.Sensor1} - {sensorData.Sensor1Timestamp}</Text>
-              <Text>Sensor 2: {sensorData.Sensor2} - {sensorData.Sensor2Timestamp}</Text>
-              <Text>Sensor 3: {sensorData.Sensor3} - {sensorData.Sensor3Timestamp}</Text> */}
-
-              {/* <View style={styles.gaugeContainer}>
-                <GradientGauge value={gaugeValue} maxValue={maxValue} />
-              </View> */}
-
-        {/* <View style={styles.container}> */}
-        {/* Temperature Gauge */}
-                      {/* <AnimatedCircularProgress 
-                size={120}
-                width={20}
-
-                fill={(temperatureInFahrenheit / maxGauge) * 100}
-
-                tintColor="#ff4500"
-                backgroundColor="#d3d3d3"
-                lineCap="round"
-                arcSweepAngle={270}
-                rotation={225}
-                duration={900}
-              >
-                {() => (
-                  <View style={styles.centerTextContainer}>
-                    <Text style={styles.temperatureText}>
-                      
-                      {temperatureInFahrenheit.toFixed(0)}°F
-                     
-                    </Text>
-                  </View>
-                )}
-              </AnimatedCircularProgress> */}
-            {/* </View> */}
 
                  {/* Gauge using nativewind */}
                  <StyledView className="flex-row justify-between items-center">
-
-                 <StyledView className="items-center">
-
                   {/*pH Gauge*/}
-                  <AnimatedCircularProgress
-                    size={110}
-                    width={20}
-                    fill={(pHSensor / maxGauge) * 100}
-                    tintColor="#ff1a1a"
-                    backgroundColor="#d3d3d3"
-                    lineCap="round"
-                    arcSweepAngle={270}
-                    rotation={225}
-                    duration={900}
-                  >
-                    {() => (
-                      <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
-                          {pHSensor.toFixed(2)} 
-                          {/* {pHSensor.toFixed(0)}  */}
-                        </StyledText>
-                      </StyledView>
-                    )}
-                  </AnimatedCircularProgress>
-
+                  <StyledView className="items-center">
+                    <AnimatedCircularProgress
+                      size={110}
+                      width={20}
+                      fill={(pHSensor / maxGauge) * 100}
+                      tintColor="#ff1a1a"
+                      backgroundColor="#d3d3d3"
+                      lineCap="round"
+                      arcSweepAngle={270}
+                      rotation={225}
+                      duration={900}
+                    >
+                      {() => (
+                        <StyledView className="items-center justify-center" style={{height:80 }} >
+                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
+                            {pHSensor.toFixed(2)} 
+                          </StyledText>
+                        </StyledView>
+                      )}
+                    </AnimatedCircularProgress>
                     {/* Small box below the gauge for pH level */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">pH level</StyledText>
                     </StyledView>
                   </StyledView>
                   
+                  {/*Temperature Gauge*/}
                   <StyledView className="items-center">
-                   {/*Temperature Gauge*/}
-                   <StyledView className="mx-2"> 
-                  <AnimatedCircularProgress
-                    size={150}
-                    width={20}
-                    fill={(temperatureInFahrenheit / maxGauge) * 100}
-                    tintColor="#cc00ff"
-                    backgroundColor="#d3d3d3"
-                    lineCap="round"
-                    arcSweepAngle={270}
-                    rotation={225}
-                    duration={900}
-                  >
-                    {() => (
-                      <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#cc00ff' }}>
-                          {temperatureInFahrenheit.toFixed(0)}°F
-                        </StyledText>
-                      </StyledView>
-                    )}
-                  </AnimatedCircularProgress>
-                  </StyledView>
-                    {/* Small box below the gauge for pH level */}
+                    <StyledView className="mx-2"> 
+                      <AnimatedCircularProgress
+                        size={150}
+                        width={20}
+                        fill={(temperatureInFahrenheit / maxGauge) * 100}
+                        tintColor="#cc00ff"
+                        backgroundColor="#d3d3d3"
+                        lineCap="round"
+                        arcSweepAngle={270}
+                        rotation={225}
+                        duration={900}
+                      >
+                        {() => (
+                          <StyledView className="items-center justify-center" style={{height:80 }} >
+                            <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#cc00ff' }}>
+                              {temperatureInFahrenheit.toFixed(0)}°F
+                            </StyledText>
+                          </StyledView>
+                        )}
+                      </AnimatedCircularProgress>
+                    </StyledView>
+                    {/* Small box below the gauge for Temperature */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">Temperature</StyledText>
                     </StyledView>
                   </StyledView>
 
-                  <StyledView className="items-center">
                   {/*Turbidity Gauge*/}
-                  <AnimatedCircularProgress
-                    size={110}
-                    width={20}
-                    fill={(turbiditySensor / maxGauge) * 100}
-                    tintColor="#1a53ff"
-                    backgroundColor="#d3d3d3"
-                    lineCap="round"
-                    arcSweepAngle={270}
-                    rotation={225}
-                    duration={900}
-                  >
-                    {() => (
-                      <StyledView className="items-center justify-center" style={{height:80 }} >
-                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
-                          {turbiditySensor.toFixed(0)}
-                        </StyledText>
-                      </StyledView>
-                    )}
-                  </AnimatedCircularProgress>
-                    {/* Small box below the gauge for pH level */}
+                  <StyledView className="items-center">
+                    <AnimatedCircularProgress
+                      size={110}
+                      width={20}
+                      fill={(turbiditySensor / maxGauge) * 100}
+                      tintColor="#1a53ff"
+                      backgroundColor="#d3d3d3"
+                      lineCap="round"
+                      arcSweepAngle={270}
+                      rotation={225}
+                      duration={900}
+                    >
+                      {() => (
+                        <StyledView className="items-center justify-center" style={{height:80 }} >
+                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
+                            {turbiditySensor.toFixed(0)}
+                          </StyledText>
+                        </StyledView>
+                      )}
+                    </AnimatedCircularProgress>
+                    {/* Small box below the gauge for Turbidity */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">Turbidity</StyledText>
                     </StyledView>
@@ -384,10 +230,7 @@ const fetchSensorData = async () => {
                 {/* Feeding Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  
-                  //onPress={moveServo}
                   onPress={() => console.log('Feeding Button pressed')}
-
                 >
                   <Image
                     source={require('../assets/icons/feedingButton.png')}
@@ -420,10 +263,10 @@ const fetchSensorData = async () => {
               {/* Row 2 */}
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
                 
-                {/* Light Button Needs to be fixed*/}
+                {/* Light Button*/}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Light Button pressed')}
+                  onPress={debugToggleLED}  // Call the toggleLED function here
                 >
                   <Image
                     source={require('../assets/icons/lightButton.png')}
@@ -460,4 +303,3 @@ const fetchSensorData = async () => {
     </GestureHandlerRootView>
   );
 }
-

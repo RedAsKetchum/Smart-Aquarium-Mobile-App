@@ -15,7 +15,9 @@ const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define A
 
 const ColorPickerComponent = () => {
   const router = useRouter();
-  const [selectedColor, setSelectedColor] = useState('#ff0000');  // Initial color set to red
+  
+  // Set initial color to green to match the ESP32 default
+  const [selectedColor, setSelectedColor] = useState('#00ff00');  // Default to green (RGB: 0, 255, 0)
   const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
   const [mqttClient, setMqttClient] = useState(null);
 
@@ -41,6 +43,9 @@ const ColorPickerComponent = () => {
       onSuccess: () => {
         console.log('Connected to Adafruit IO via Paho MQTT WebSocket');
         setMqttClient(client);
+
+        // Send the default color (green) and brightness when the app connects to match the ESP32 default
+        sendColorAndBrightnessToESP32('#00ff00', 1);  // Green color with full brightness
       },
       onFailure: (err) => {
         console.error('Connection error:', err);
@@ -101,8 +106,9 @@ const ColorPickerComponent = () => {
           <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
         </View>
         <View style={{flex: 0.8, justifyContent: 'center', alignItems: 'center'}}>
+          {/* Make sure the initialColor is set to selectedColor */}
           <WheelColorPicker  
-            initialColor={selectedColor}
+            color={selectedColor}  // Set color prop to selectedColor to reflect changes
             onColorChange={color => {
               setSelectedColor(color);
               sendColorAndBrightnessToESP32(color, brightness);  // Send color and brightness together
