@@ -54,7 +54,7 @@ export default function AddSchedule() {
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
                 {/* Back button */}
                 <TouchableOpacity  
-                    onPress={() => router.back()}  // Navigate back using router.back()
+                    onPress={() => router.push('schedulePage')}  // Navigate back using router.back()
                     style={{padding: 10, marginLeft: 10}}>
                     <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                 </TouchableOpacity>

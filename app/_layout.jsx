@@ -35,6 +35,12 @@ const RootLayout = () => {
 
       {/* LED Screen */}
       <Stack.Screen name="ledSetting" options={{ headerShown: false }} />
+      
+      {/* Schedule Page */}
+      <Stack.Screen name="schedulePage" options={{ headerShown: false }} />
+
+      {/* Add Schedule Page */}
+      <Stack.Screen name="addSchedule" options={{ headerShown: false }} />
     </Stack>
   );
 };

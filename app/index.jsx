@@ -271,7 +271,7 @@ export default function App() {
                 {/* Calendar Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Calendar Button pressed')}
+                  onPress={() => router.push('/schedulePage')}
                 >
                   <Image
                     source={require('../assets/icons/calendarButton.png')}  

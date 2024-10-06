@@ -133,7 +133,7 @@ const ColorPickerComponent = () => {
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
-          <TouchableOpacity onPress={() => router.back()} style={{padding: 10, marginLeft: 10}}>
+          <TouchableOpacity onPress={() => router.push('/settings')} style={{padding: 10, marginLeft: 10}}>
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{padding: 10, marginRight: 18}}>

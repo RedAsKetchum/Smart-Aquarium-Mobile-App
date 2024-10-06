@@ -85,7 +85,7 @@ export default function SchedulePage() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     {/* Back button */}
                     <TouchableOpacity 
-                        onPress={() => router.replace('index')} 
+                        onPress={() => router.push('/')} 
                         style={{ padding: 10 }}
                     >
                         <Icon name="arrow-back" size={35} color="white" />
