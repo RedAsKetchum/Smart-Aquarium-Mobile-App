@@ -8,6 +8,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import { useRouter } from 'expo-router';
 import { Client, Message } from 'paho-mqtt';  // Correct import for Paho MQTT
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { debugToggleLED } from '.';  // Import the debugToggleLED from index.jsx
 
 const AIO_USERNAME = 'RedAsKetchum';  // Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Adafruit IO key
@@ -21,7 +23,25 @@ const ColorPickerComponent = () => {
   const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
   const [mqttClient, setMqttClient] = useState(null);
 
+  // Key for storing color in AsyncStorage
+  const COLOR_STORAGE_KEY = 'userSelectedColor';
+
   useEffect(() => {
+    // Fetch the saved color from AsyncStorage when the component loads
+    const fetchSavedColor = async () => {
+      try {
+        const savedColor = await AsyncStorage.getItem(COLOR_STORAGE_KEY);
+        if (savedColor) {
+          setSelectedColor(savedColor);  // If a color was saved, set it as the selected color
+          sendColorAndBrightnessToESP32(savedColor, brightness);  // Apply saved color to ESP32
+        }
+      } catch (error) {
+        console.error("Error loading saved color: ", error);
+      }
+    };
+
+    fetchSavedColor();
+
     // Initialize the MQTT client using Paho with a unique Client ID
     const client = new Client('wss://io.adafruit.com/mqtt', `mqtt-client-${Date.now()}`);  // Ensure Client ID is unique
 
@@ -86,6 +106,26 @@ const ColorPickerComponent = () => {
     return { r, g, b };
   };
 
+  // Function to save the selected color to AsyncStorage
+  const saveSelectedColor = async (color) => {
+    try {
+      await AsyncStorage.setItem(COLOR_STORAGE_KEY, color);  // Save the color in AsyncStorage
+      console.log(`Color ${color} saved successfully!`);
+    } catch (error) {
+      console.error("Error saving color: ", error);
+    }
+  };
+
+  // Function to reset the color and brightness to the default (green, full brightness)
+  const resetToDefault = () => {
+    const defaultColor = '#00ff00';  // Green
+    const defaultBrightness = 1;     // Full brightness
+
+    setSelectedColor(defaultColor);  // Reset color state
+    setBrightness(defaultBrightness); // Reset brightness state
+    sendColorAndBrightnessToESP32(defaultColor, defaultBrightness);  // Send default values to ESP32
+  };
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaView className="bg-primary h-full">
@@ -101,8 +141,16 @@ const ColorPickerComponent = () => {
               color="white"  
             />
           </TouchableOpacity>
+           {/* Save button */}
+           <TouchableOpacity  
+            onPress={() => saveSelectedColor(selectedColor)}  // Save selected color on "Save" press
+            style={{padding: 10, marginRight: 18}}>
+             <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>
+              Save
+            </Text>
+          </TouchableOpacity>
         </View>
-        <View style={{ justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
+        <View style={{ justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 20}}>
           <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
         </View>
         <View style={{flex: 0.8, justifyContent: 'center', alignItems: 'center'}}>
@@ -156,6 +204,13 @@ const ColorPickerComponent = () => {
             </TouchableOpacity>
           </View>
         </View>
+        {/* Reset to default */}
+        <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]}
+            onPress={resetToDefault}> 
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>
+              Reset to default
+            </Text>
+          </TouchableOpacity>
       </SafeAreaView>
     </GestureHandlerRootView>
   );

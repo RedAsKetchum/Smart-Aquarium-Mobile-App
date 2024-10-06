@@ -21,32 +21,9 @@ const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/l
 const StyledView = styled(View);
 const StyledText = styled(Text);
 
-export default function App() {
-
-  //************************CONSTANTS**********************************/
-  const today = new Date();
-  const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
-  const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
-  const sheetRef = useRef(null);
-  const snapPoints = ['15%', '32%'];
-
-  const [temperatureSensor, setTemperatureSensor] = useState(-1);
-  const [pHSensor, setpHSensor] = useState(-1);
-  const [turbiditySensor, setTurbidity] = useState(-1);
-  const [loading, setLoading] = useState(true);
-  const [isLightOn, setIsLightOn] = useState(false);  // State to track LED status
-
-  //Used to Display Data on the Homescreen Gauge
-  const temperatureInFahrenheit = (temperatureSensor);
-  
-  // Adjust the key based on your data structure
-  const maxGauge = 100; // Max value of the gauge
-
- // Function to toggle the LED light on/off
-const toggleLED = async () => {
-  // Toggle the LED state
-  const newState = isLightOn ? 'OFF' : 'ON';  
-
+// Define and export toggleLED
+export const toggleLED = async (isLightOn, setIsLightOn) => {
+  const newState = isLightOn ? 'OFF' : 'ON';
   try {
     const response = await fetch(LED_CONTROL_FEED, {
       method: 'POST',
@@ -60,8 +37,7 @@ const toggleLED = async () => {
     });
 
     if (response.ok) {
-      // Toggle the local state only if the API request was successful
-      setIsLightOn(!isLightOn);  
+      setIsLightOn(!isLightOn);
       Alert.alert('Success', `LED turned ${newState}`);
     } else {
       throw new Error('Failed to update Adafruit IO feed');
@@ -72,14 +48,32 @@ const toggleLED = async () => {
   }
 };
 
-// Add logging to check what's being sent to Adafruit IO
-const debugToggleLED = async () => {
-  const newState = isLightOn ? 'OFF' : 'ON';
-  console.log(`Sending LED state: ${newState}`); // Debug log
-
-  await toggleLED();  // Call the existing toggleLED function
+// Define and export debugToggleLED
+export const debugToggleLED = async (isLightOn, setIsLightOn) => {
+  console.log(`Sending LED state: ${isLightOn ? 'OFF' : 'ON'}`);
+  await toggleLED(isLightOn, setIsLightOn);
 };
 
+export default function App() {
+
+  //************************CONSTANTS**********************************/
+  const today = new Date();
+  const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
+  const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
+  const sheetRef = useRef(null);
+  const snapPoints = ['15%', '32%'];
+
+  const [temperatureSensor, setTemperatureSensor] = useState(-1);
+  const [pHSensor, setpHSensor] = useState(-1);
+  const [turbiditySensor, setTurbidity] = useState(-1);
+  const [loading, setLoading] = useState(true);
+  const [isLightOn, setIsLightOn] = useState(true);  // State to track LED status
+
+  //Used to Display Data on the Homescreen Gauge
+  const temperatureInFahrenheit = (temperatureSensor);
+  
+  // Adjust the key based on your data structure
+  const maxGauge = 100; // Max value of the gauge
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -266,7 +260,7 @@ const debugToggleLED = async () => {
                 {/* Light Button*/}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={debugToggleLED}  // Call the toggleLED function here
+                  onPress={() => debugToggleLED(isLightOn, setIsLightOn)} // Call the toggleLED function here
                 >
                   <Image
                     source={require('../assets/icons/lightButton.png')}
