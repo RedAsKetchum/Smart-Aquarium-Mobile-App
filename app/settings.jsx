@@ -68,7 +68,7 @@ const settings = () => {
           </TouchableOpacity>
           {/* LED Settings */}
           <TouchableOpacity style={styles.buttons}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+            onPress={() => router.push('/ledSetting')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               LED Settings
             </Text>
