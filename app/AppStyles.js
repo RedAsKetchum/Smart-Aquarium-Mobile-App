@@ -79,41 +79,60 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
   },
-  gaugeContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // gaugeContainer: {
+  //   width: 200,
+  //   height: 200,
+  //   flexDirection: 'row', // This ensures the gauges are side by side
+  //   justifyContent: 'space-between', // Optional: Adjust spacing between gauges
+  //   alignItems: 'center',
+  // },
   container: {
     justifyContent: 'center',
     position: 'relative',
+    //flexDirection: 'row', // This ensures the gauges are side by side TESTING
+    //justifyContent: 'space-between', // Optional: Adjust spacing between gauges 
+    
+  
+    
   },
-  svgContainer: {
-    backgroundColor: 'transparent',
-  },
-  temperatureText: {
-    position: 'absolute',
-    top: 160,  // Positioned below the gauge
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'black'
-  },
+  // svgContainer: {
+  //   backgroundColor: 'transparent',
+  // },
+  // temperatureText: {
+  //   position: 'absolute',
+  //   top: 160,  // Positioned below the gauge
+  //   fontSize: 24,
+  //   fontWeight: 'bold',
+  //   color: 'black'
+  // },
 
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: 'bold',
-  },
+  // title: {
+  //   fontSize: 24,
+  //   marginBottom: 20,
+  //   fontWeight: 'bold',
+  // },
   centerTextContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+   
   },
   temperatureText: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#ff4500',  // Match the gauge color
+  },
+  buttons: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    paddingVertical: 15, 
+    paddingHorizontal: 20, 
+    borderRadius: 15, 
+    marginTop: 20, 
+    width: '90%', 
+    height: 105,
+    alignSelf: 'center', // Center the button inside ScrollView
+    justifyContent: 'center', 
+    alignItems: 'center'
   },
 
 });
