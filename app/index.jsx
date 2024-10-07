@@ -12,11 +12,15 @@ import {ActivityIndicator } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { styles } from './AppStyles'; //imports app styles for components using stylesheet
 import { styled } from 'nativewind';
+import axios from 'axios'; //for servo motor control
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`;  // Adafruit IO feed URL for controlling LED
+const FEED_KEY = 'temperature-sensor';  // Your feed key
+const FEED_KEY2 = 'servo-control';  // Your feed key
+const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -61,7 +65,7 @@ export default function App() {
   const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(today);
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
-  const snapPoints = ['15%', '32%'];
+  const snapPoints = ['18%', '32%'];
 
   const [temperatureSensor, setTemperatureSensor] = useState(-1);
   const [pHSensor, setpHSensor] = useState(-1);
@@ -82,6 +86,26 @@ export default function App() {
           <View className="bg-gray-500 rounded-full w-10 h-1" />
         </View>
       );
+  };
+
+  const handleActivateServo = async () => {
+    const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
+    
+    try {
+      // Send the "activate" command to the Adafruit IO feed
+      await axios.post(url, {
+        value: "activate"  // This value will be used by your ESP32 code to activate the servo
+      }, {
+        headers: {
+          "X-AIO-Key": AIO_KEY,
+          "Content-Type": "application/json"
+        }
+      });
+
+      console.log("Servo activation command sent.");
+    } catch (error) {
+      console.error("Error sending command:", error);
+    }
   };
 
   return (
@@ -133,28 +157,29 @@ export default function App() {
                   
                   {/*Temperature Gauge*/}
                   <StyledView className="items-center">
-                    <StyledView className="mx-2"> 
-                      <AnimatedCircularProgress
-                        size={150}
-                        width={20}
-                        fill={(temperatureInFahrenheit / maxGauge) * 100}
-                        tintColor="#cc00ff"
-                        backgroundColor="#d3d3d3"
-                        lineCap="round"
-                        arcSweepAngle={270}
-                        rotation={225}
-                        duration={900}
-                      >
-                        {() => (
-                          <StyledView className="items-center justify-center" style={{height:80 }} >
-                            <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#cc00ff' }}>
-                              {temperatureInFahrenheit.toFixed(0)}°F
-                            </StyledText>
-                          </StyledView>
-                        )}
-                      </AnimatedCircularProgress>
-                    </StyledView>
-                    {/* Small box below the gauge for Temperature */}
+                   {/*Temperature Gauge*/}
+                   <StyledView className="mx-2"> 
+                  <AnimatedCircularProgress
+                    size={150}
+                    width={20}
+                    fill={(temperatureInFahrenheit / maxGauge) * 100}
+                    tintColor="#9933ff"
+                    backgroundColor="#d3d3d3"
+                    lineCap="round"
+                    arcSweepAngle={270}
+                    rotation={225}
+                    duration={900}
+                  >
+                    {() => (
+                      <StyledView className="items-center justify-center" style={{height:80 }} >
+                        <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#9933ff' }}>
+                          {temperatureInFahrenheit.toFixed(0)}°F
+                        </StyledText>
+                      </StyledView>
+                    )}
+                  </AnimatedCircularProgress>
+                  </StyledView>
+                    {/* Small box below the gauge for pH level */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
                       <StyledText className="text-black font-semibold">Temperature</StyledText>
                     </StyledView>
@@ -224,7 +249,14 @@ export default function App() {
                 {/* Feeding Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Feeding Button pressed')}
+                  
+                  //onPress={moveServo}
+                  //onPress={() => console.log('Feeding Button pressed')}
+                  onPress={() => {
+                    handleActivateServo();   // Call the function to activate the servo
+                    console.log('Feeding button pressed.');   // Log the button press
+                  }
+                }
                 >
                   <Image
                     source={require('../assets/icons/feedingButton.png')}
@@ -235,18 +267,18 @@ export default function App() {
                 {/* Camera Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Camera Button pressed')}
+                  onPress={() => console.log('Camera button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/cameraButton.png')}  
-                    style={{width: 100, height: 100}}  
+                    style={{width: 99, height: 97}}  
                   />
                 </TouchableOpacity>
 
                 {/* pH Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('pH Button pressed')}
+                  onPress={() => console.log('pH button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/phButton.png')}  
@@ -282,7 +314,7 @@ export default function App() {
                 {/* Bubbles Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Bubbles pressed')}
+                  onPress={() => console.log('Bubbles button pressed.')}
                 >
                   <Image
                     source={require('../assets/icons/bubblesButton.png')}  
