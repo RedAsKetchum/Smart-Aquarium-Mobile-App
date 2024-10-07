@@ -79,13 +79,20 @@ export default function SchedulePage() {
 
     // Helper function to add a new schedule
     const addSchedule = (schedule) => {
+        // Check if the schedule already exists to prevent duplicates
+        const exists = schedules.some(s => s.time === schedule.time && s.days === schedule.days);
+        if (exists) {
+            console.log("Schedule already exists. Skipping addition.");
+            return;
+        }
+
         setSchedules((prevSchedules) => {
             const newSchedules = [...prevSchedules, { ...schedule, enabled: false }];
             console.log("New schedules state after adding:", newSchedules);  // Log the new state after adding
             return newSchedules;
         });
 
-        // Send the new schedule to Adafruit IO and then refresh the schedules
+        // Send the new schedule to Adafruit IO
         sendScheduleToAdafruitIO(schedule).then(() => {
             fetchSchedules();  // Re-fetch the schedules after adding
         });
@@ -100,7 +107,7 @@ export default function SchedulePage() {
                 // Log the parsed schedule
                 console.log("Parsed new schedule:", parsedSchedule);
 
-                // Add the parsed schedule to the list and refresh
+                // Add the parsed schedule to the list if it doesn't already exist
                 addSchedule(parsedSchedule);
             } catch (error) {
                 console.error('Failed to parse new schedule:', error);

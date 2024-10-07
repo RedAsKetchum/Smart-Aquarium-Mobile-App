@@ -41,6 +41,9 @@ const RootLayout = () => {
 
       {/* Add Schedule Page */}
       <Stack.Screen name="addSchedule" options={{ headerShown: false }} />
+
+      {/* Repeat Days Page */}
+      <Stack.Screen name="repeatDay" options={{ headerShown: false }} />
     </Stack>
   );
 };

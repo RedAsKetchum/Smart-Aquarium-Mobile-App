@@ -9,22 +9,28 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function AddSchedule() {
     const router = useRouter();  // Use the router to handle navigation
-    const { selectedDays } = useLocalSearchParams();  // Get selected days passed from repeatDay
+    const { selectedDays, selectedTime } = useLocalSearchParams();  // Get selectedTime and selectedDays passed from RepeatDay
 
     const [date, setDate] = useState(new Date());
     const [selectedDaysState, setSelectedDaysState] = useState(selectedDays ? selectedDays.split(',') : []);
 
-    // Effect to handle updating state when days are passed as params
+    // Effect to handle updating state when days or time are passed as params
     useEffect(() => {
         if (selectedDays) {
             setSelectedDaysState(selectedDays.split(','));
         }
-    }, [selectedDays]);
+
+        if (selectedTime) {
+            const restoredDate = new Date(selectedTime);  // Convert string back to Date object
+            setDate(restoredDate);  // Restore the selected time
+        }
+    }, [selectedDays, selectedTime]);
 
     // Time change handler for DateTimePicker
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setDate(currentDate);  // Save the selected date or time
+        console.log("Selected Time:", currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     };
 
     // Function to format selected days for display
@@ -54,7 +60,7 @@ export default function AddSchedule() {
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
                 {/* Back button */}
                 <TouchableOpacity  
-                    onPress={() => router.push('schedulePage')}  // Navigate back using router.back()
+                    onPress={() => router.push('/schedulePage')}  // Navigate back
                     style={{padding: 10, marginLeft: 10}}>
                     <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                 </TouchableOpacity>
@@ -74,11 +80,11 @@ export default function AddSchedule() {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>  
                         <DateTimePicker
                             testID="TimePicker"
-                            value={date}
+                            value={date}  // This holds the current selected time
                             mode={"time"}
                             is24Hour={true}
                             display="default"
-                            onChange={onChange}
+                            onChange={onChange}  // Track time changes
                         />
                         <Icon 
                             name="chevron-forward-outline"
@@ -93,7 +99,12 @@ export default function AddSchedule() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ fontSize: 17,  color: 'white', marginLeft: 10}}>Repeat Day</Text>
                     <TouchableOpacity  
-                        onPress={() => router.push({ pathname: './repeatDay', params: { selectedDays: selectedDaysState.join(',') }})}  // Passing selected days to repeatDay
+                        onPress={() => router.push({ 
+                            pathname: './repeatDay', 
+                            params: { 
+                                selectedDays: selectedDaysState.join(','), 
+                                selectedTime: date.toISOString()  // Pass the selected time as a parameter
+                            }})}  
                         style={{flexDirection: 'row',padding: 10}}>
                         <Text style={{ fontSize: 17, color: 'purple', marginRight: 10}}>{formatSelectedDays()}</Text>
                         <Icon 

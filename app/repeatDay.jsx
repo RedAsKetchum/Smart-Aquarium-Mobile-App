@@ -1,15 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { router } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router'; // Get search params for time
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import { MaterialIcons } from '@expo/vector-icons'; // Using Expo for icons
 
 export default function RepeatDay() {
-    const ESP32_IP = 'http://192.168.50.35';  // Replace with your ESP32 IP address
+    const { selectedTime, selectedDays: selectedDaysParam } = useLocalSearchParams();  // Get selected time and days
+    const initialSelectedDays = selectedDaysParam ? selectedDaysParam.split(',') : [];
 
-    // Days of the week
+    const [selectedDays, setSelectedDays] = useState(initialSelectedDays);
+
     const days = [
         { id: 'Su', label: 'Every Sunday' },
         { id: 'Mo', label: 'Every Monday' },
@@ -19,9 +21,6 @@ export default function RepeatDay() {
         { id: 'Fr', label: 'Every Friday' },
         { id: 'Sa', label: 'Every Saturday' },
     ];
-
-    // State for selected days
-    const [selectedDays, setSelectedDays] = useState([]);
 
     // Toggle day selection
     const toggleDay = (dayId) => {
@@ -40,13 +39,19 @@ export default function RepeatDay() {
                 {/* Header with Cancel and Save */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     <TouchableOpacity  
-                        onPress={() => router.push('./addSchedule')} 
+                        onPress={() => router.push('/addSchedule')} 
                         style={{ padding: 10, marginLeft: 10 }}>
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                     </TouchableOpacity>
-                    <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>Add</Text>
+                    <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>Repeat Days</Text>
                     <TouchableOpacity  
-                        onPress={() => router.push({pathname: '/addSchedule', params: {selectedDays: selectedDays.join(',')}})} 
+                        onPress={() => router.push({
+                            pathname: '/addSchedule',
+                            params: { 
+                                selectedDays: selectedDays.join(','), 
+                                selectedTime  // Pass the time back to AddSchedule
+                            }
+                        })} 
                         style={{ padding: 10, marginRight: 10 }}>
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Save</Text>
                     </TouchableOpacity>
