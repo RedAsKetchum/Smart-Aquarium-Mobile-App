@@ -103,7 +103,7 @@ const ColorPickerComponent = () => {
 
   const saveToAdafruitIO = async (color, brightness) => {
     const rgb = hexToRgb(color);
-    const controlMessage = `${rgb.r},${rgb.g},${rgb.b},${brightness}`;
+    const controlMessage = `${rgb.r},${rgb.g},${rgb.b},${brightness},SAVED`;  // Add "SAVED" as an indicator
     try {
       await fetch(LED_CONTROL_FEED, {
         method: 'POST',
@@ -113,11 +113,11 @@ const ColorPickerComponent = () => {
         },
         body: JSON.stringify({ value: controlMessage }),
       });
-      console.log(`Color and brightness saved to Adafruit IO: ${controlMessage}`);
+      console.log(`Color and brightness saved to Adafruit IO with indicator: ${controlMessage}`);
     } catch (error) {
       console.error("Error saving to Adafruit IO: ", error.message || error);
     }
-  };
+};
 
   const resetToDefault = () => {
     const defaultColor = '#00ff00';  
