@@ -82,7 +82,7 @@ const settings = () => {
           </TouchableOpacity>
            {/*Format */}
            <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+            onPress={sendRebootCommand}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>
               Format
             </Text>
