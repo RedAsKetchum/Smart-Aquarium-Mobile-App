@@ -13,13 +13,19 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "jsEngine": "jsc"  
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/bones.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "hermes": false  
     },
     "web": {
       "bundler": "metro",
