@@ -3,7 +3,7 @@ import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
-import { styles } from './AppStyles';
+import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const settings = () => {
@@ -68,7 +68,7 @@ const settings = () => {
           </TouchableOpacity>
           {/* LED Settings */}
           <TouchableOpacity style={styles.buttons}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+            onPress={() => router.push('/ledSetting')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               LED Settings
             </Text>
