@@ -23,6 +23,7 @@ const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEE
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
+import schedulePage from './schedulePage';
 
 export default function App() {
  
@@ -234,7 +235,7 @@ const fetchSensorData = async () => {
       <StatusBar backgroundColor="#161622" style="dark" />
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <ScrollView contentContainerStyle={{ height: '100%' }}>
-          <View className="w-full min-[85vh] px-4">
+          <View className="w-full min-[85vh] px-5">
             <Text className="text-2xl font-bold text-white text-center">{dayName}</Text>
             <Text className="text-xl font-semibold text-white text-center pl-2">{monthAndDay}</Text>
             <View className="relative mt-5">
@@ -425,7 +426,7 @@ const fetchSensorData = async () => {
                 {/* Calendar Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 40, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Calendar button pressed.')}
+                  onPress={() => router.push('./schedulePage')}
                 >
                   <Image
                     source={require('../assets/icons/calendarButton.png')}  

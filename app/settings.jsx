@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomButton from '../components/CustomButton';
 import { router } from 'expo-router';
-import { styles } from './AppStyles';
+import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 
 
@@ -16,18 +16,23 @@ const settings = () => {
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['10%', '40%'];
-
+ 
   return (
     <GestureHandlerRootView style={styles.container}>  
-      <SafeAreaView className="bg-primary h-full">
-        <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        {/* Back button */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
-          <TouchableOpacity 
+    <SafeAreaView className="bg-primary h-full">
+      <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
+        <View>
+          {/* Back button */}
+          <TouchableOpacity  
             onPress={() => router.push('/')} 
-            style={{ padding: 10 }}
-          >    
-            <Icon name="arrow-back" size={35} color="white" />
+            style={{
+            top: 10,  
+            left: 20,}}>
+            <Icon 
+              name="arrow-back"  
+              size={30} 
+              color="white"  
+            />
           </TouchableOpacity>
           
         </View>
@@ -50,7 +55,7 @@ const settings = () => {
           </TouchableOpacity>
           {/* LED Settings */}
           <TouchableOpacity style={styles.buttons}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+            onPress={() => router.push('/ledSetting')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               LED Settings
             </Text>
