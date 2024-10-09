@@ -13,6 +13,7 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { styles } from './AppStyles'; //imports app styles for components using stylesheet
 import { styled } from 'nativewind';
 import axios from 'axios'; //for servo motor control
+import schedulePage from './schedulePage';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
