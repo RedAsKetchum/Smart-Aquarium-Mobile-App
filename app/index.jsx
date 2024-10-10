@@ -174,73 +174,26 @@ const fetchSensorData = async () => {
         if (temperatureSensor === null) {
           return <ActivityIndicator size="large" color="#0000ff" />;
         }
-  
-    // useEffect(() => {
-    //   // WebSocket URL with authentication
-    //   const socketUrl = `wss://io.adafruit.com/mqtt/${AIO_USERNAME}/feeds/${FEED_KEY}?x-aio-key=${AIO_KEY}`;
 
-    //   // Create a new WebSocket connection
-    //   const socket = new WebSocket(socketUrl);
-  
-    //   // Handle connection open
-    //   socket.onopen = () => {
-    //     console.log('WebSocket connected');
-    //     setConnected(true);
-    //   };
-  
-    //   // Handle incoming messages
-    //   socket.onmessage = (event) => {
-    //     try {
-    //       console.log('Raw message received:', event.data); // Log raw message
-    //       const messageData = JSON.parse(event.data);
-    //       console.log('Parsed message:', messageData); // Log parsed message
-    //       if (messageData && messageData.value) {
-    //         setTemperatureSensor(messageData.value);  // Update temperature sensor data
-    //       } else {
-    //         console.log('No value found in message data:', messageData);
-    //       }
-    //     } catch (err) {
-    //       console.error('Error parsing message data:', err);
-    //     }
-    //   };
-      
-    //   // Handle errors
-    //   socket.onerror = (error) => {
-    //     console.error('WebSocket error:', error);
-    //   };
-  
-    //   // Handle connection close
-    //   socket.onclose = (event) => {
-    //     console.log(`WebSocket closed: code = ${event.code}, reason = ${event.reason}`);
-    //     setConnected(false);
-    //   };
-      
-    //   // Cleanup WebSocket on unmount
-    //   return () => {
-    //     if (socket) {
-    //       socket.close();
-    //     }
-    //   };
-    // }, []);
+  const handleActivateServo = async () => {
+    const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
+    
+    try {
+      // Send the "activate" command to the Adafruit IO feed
+      await axios.post(url, {
+        value: "activate"  // This value will be used by your ESP32 code to activate the servo
+      }, {
+        headers: {
+          "X-AIO-Key": AIO_KEY,
+          "Content-Type": "application/json"
+        }
+      });
 
-    // Function to move the servo 30 degrees forward and back
-  // const moveServo = async () => {
-  //   if (servoMoving) return; // Prevent multiple presses while moving
-
-  //   setServoMoving(true);
-  //   try {
-  //     const response = await fetch('http://192.168.50.35/move_servo'); // Replace with your ESP32 IP address
-  //     if (response.ok) {
-  //       Alert.alert('Success', 'Servo moved 50 degrees forward and back');
-  //     } else {
-  //       Alert.alert('Error', 'Failed to move servo');
-  //     }
-  //   } catch (error) {
-  //     Alert.alert('Error', `Failed to connect: ${error.message}`);
-  //   } finally {
-  //     setServoMoving(false); // Allow further presses after moving is done
-  //   }
-  // };
+      console.log("Servo activation command sent.");
+    } catch (error) {
+      console.error("Error sending command:", error);
+    }
+  };
 
   return (
 
