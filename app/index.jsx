@@ -203,7 +203,7 @@ const fetchSensorData = async () => {
       <StatusBar backgroundColor="#161622" style="dark" />
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <ScrollView contentContainerStyle={{ height: '100%' }}>
-          <View className="w-full min-[85vh] px-5">
+          <View className="w-full min-[85vh] px-3">
             <Text className="text-2xl font-bold text-white text-center">{dayName}</Text>
             <Text className="text-xl font-semibold text-white text-center pl-2">{monthAndDay}</Text>
             <View className="relative mt-5">
