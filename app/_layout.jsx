@@ -44,6 +44,10 @@ const RootLayout = () => {
 
       {/* Repeat Days Page */}
       <Stack.Screen name="repeatDay" options={{ headerShown: false }} />
+
+      {/* Dispenser Settings Page */}
+      <Stack.Screen name="dispenserSettings" options={{ headerShown: false }} />
+
     </Stack>
   );
 };
