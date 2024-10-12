@@ -87,13 +87,13 @@ export default function SchedulePage() {
         }
 
         setSchedules((prevSchedules) => {
-            const newSchedules = [...prevSchedules, { ...schedule, enabled: false }];
+            const newSchedules = [...prevSchedules, { ...schedule, enabled: true }];
             console.log("New schedules state after adding:", newSchedules);  // Log the new state after adding
             return newSchedules;
         });
 
-        // Send the new schedule to Adafruit IO
-        sendScheduleToAdafruitIO(schedule).then(() => {
+            // Send the new schedule to Adafruit IO
+        sendScheduleToAdafruitIO({ ...schedule, enabled: true }).then(() => {
             fetchSchedules();  // Re-fetch the schedules after adding
         });
     };
