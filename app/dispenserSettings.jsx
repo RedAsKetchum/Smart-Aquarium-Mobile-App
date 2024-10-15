@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker'; // Picker for scrollable numbers
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { Alert } from 'react-native'; // Import Alert component
 
 export default function DispenserSettings() {
   const [scheduledValue, setScheduledValue] = useState(1); // State for Scheduled option
@@ -38,18 +39,37 @@ export default function DispenserSettings() {
     try {
       await AsyncStorage.setItem('scheduledValue', scheduledValue.toString());
       await AsyncStorage.setItem('manualValue', manualValue.toString());
-      alert('Values saved successfully!');
+      //alert('Values saved successfully!');
     } catch (error) {
       console.log('Error saving values', error);
     }
   };
 
+
   // Function to reset the values to default (set to 1)
   const resetToDefault = async () => {
-    setScheduledValue(1);
-    setManualValue(1);
-    await saveValues(); // Save default values
-    alert('Values reset to default');
+    Alert.alert(
+      "Reset to Default",
+      "Are you sure you want to reset the food dispenser total to default?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Reset canceled"),
+          style: "cancel", // This styles the button as a cancel option
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            // This code will run if the user presses "OK"
+            setScheduledValue(1);
+            setManualValue(1);
+            await saveValues(); // Save default values
+            alert('Total reset to default');
+          },
+        }
+      ],
+      { cancelable: false } // Makes the alert not dismissible without a button click
+    );
   };
 
   return (
@@ -87,8 +107,8 @@ export default function DispenserSettings() {
                     onValueChange={(itemValue) => setScheduledValue(itemValue)}
                     itemStyle={{ height: 100 }} // Control the height of picker items
                   >
-                    {[...Array(24).keys()].map(num => (
-                      <Picker.Item key={num} label={`${num}`} value={num} />
+                    {[...Array(99).keys()].map(num => (
+                      <Picker.Item key={num + 1} label={`${num + 1}`} value={num + 1} />
                     ))}
                   </Picker>
                 ) : (
@@ -132,8 +152,8 @@ export default function DispenserSettings() {
                     onValueChange={(itemValue) => setManualValue(itemValue)}
                     itemStyle={{ height: 100 }} // Control the height of picker items
                   >
-                    {[...Array(24).keys()].map(num => (
-                      <Picker.Item key={num} label={`${num}`} value={num} />
+                    {[...Array(99).keys()].map(num => (
+                      <Picker.Item key={num + 1} label={`${num + 1}`} value={num + 1} />
                     ))}
                   </Picker>
                 ) : (
