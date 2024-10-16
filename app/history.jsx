@@ -9,6 +9,20 @@ const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const FEED_KEY = 'temperature-sensor';  // Your specific feed key
 const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data`;  // Feed URL
 
+// Memoized component for rendering each item
+const RenderItem = React.memo(({ item }) => (
+  <View className="py-4 px-4">
+    <Text className="text-gray-500">{`Time: ${item.Sensor1Timestamp}`}</Text>
+    <Text className="text-black">{`Temperature: ${item.Sensor1}`}</Text>
+
+    <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor2Timestamp}`}</Text>
+    <Text className="text-black">{`pH Level: ${item.Sensor2}`}</Text>
+
+    <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor3Timestamp}`}</Text>
+    <Text className="text-black">{`Turbidity: ${item.Sensor3}`}</Text>
+  </View>
+));
+
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState([]);
 
@@ -33,43 +47,28 @@ export default function HistoryPage() {
     fetchHistoryData();
   }, []);
 
-  // Render each item in FlatList
-  const renderItem = ({ item }) => (
-    <View className="py-4 px-4">
-      <Text className="text-gray-500">{`Time: ${item.Sensor1Timestamp}`}</Text>
-      <Text className="text-black">{`Temperature: ${item.Sensor1}`}</Text>
-
-      <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor2Timestamp}`}</Text>
-      <Text className="text-black">{`pH Level: ${item.Sensor2}`}</Text>
-
-      <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor3Timestamp}`}</Text>
-      <Text className="text-black">{`Turbidity: ${item.Sensor3}`}</Text>
-    </View>
-  );
-
   return (
     <SafeAreaView className="flex-1 bg-white">
-
-        {/* Keep the ImageBackground */}
-        <ImageBackground 
-          source={require('../assets/images/gradient.png')} 
-          className="flex-1 absolute top-0 left-0 right-0 bottom-0" 
-          resizeMode="cover"
-        ></ImageBackground>
+      {/* Keep the ImageBackground */}
+      <ImageBackground 
+        source={require('../assets/images/gradient.png')} 
+        className="flex-1 absolute top-0 left-0 right-0 bottom-0" 
+        resizeMode="cover"
+      ></ImageBackground>
 
       <View className="flex-row items-center justify-center px-4 mt-2 relative">
         {/* Back button */}
         <TouchableOpacity 
-                onPress={() => router.push('/')} 
-                className="absolute left-0 p-2" >
-                <Icon name="arrow-back" size={35} color="white" />
+          onPress={() => router.push('/')} 
+          className="absolute left-0 p-2" >
+          <Icon name="arrow-back" size={35} color="white" />
         </TouchableOpacity>
         <Text className="text-2xl font-bold mb-2 text-white text-center">History</Text>
-     </View>
+      </View>
 
       <FlatList
         data={historyData}
-        renderItem={renderItem}
+        renderItem={({ item }) => <RenderItem item={item} />}  // Use memoized component
         keyExtractor={(item) => item.ID.toString()}
         ItemSeparatorComponent={() => <View className="h-[1px] bg-gray-300 mx-4" />}
         contentContainerStyle={{ paddingBottom: 20 }}
