@@ -26,7 +26,7 @@ const RenderItem = React.memo(({ item }) => (
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState([]);
 
-  // Fetch data from Adafruit IO
+  // Fetch data from Adafruit IO and remove duplicates
   const fetchHistoryData = async () => {
     try {
       const response = await fetch(FEED_URL, {
@@ -36,7 +36,13 @@ export default function HistoryPage() {
       });
       const data = await response.json();  // Fetch the array of data
       const parsedData = data.map((item) => JSON.parse(item.value));  // Parse each JSON string
-      setHistoryData(parsedData);  // Set the state with parsed data
+
+      // Remove duplicates based on the ID field
+      const uniqueData = parsedData.filter((item, index, self) =>
+        index === self.findIndex((t) => t.ID === item.ID)
+      );
+
+      setHistoryData(uniqueData);  // Set the state with de-duplicated data
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -69,7 +75,11 @@ export default function HistoryPage() {
       <FlatList
         data={historyData}
         renderItem={({ item }) => <RenderItem item={item} />}  // Use memoized component
-        keyExtractor={(item) => item.ID.toString()}
+        keyExtractor={(item, index) => {
+          const key = item.ID ? item.ID.toString() : index.toString();
+          //console.log("Key:", key);  // Debug key extraction
+          return key;
+        }}
         ItemSeparatorComponent={() => <View className="h-[1px] bg-gray-300 mx-4" />}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
