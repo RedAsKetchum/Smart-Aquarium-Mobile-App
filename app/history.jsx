@@ -9,7 +9,6 @@ const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const FEED_KEY = 'temperature-sensor';  // Your specific feed key
 const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?limit=168`;  // Fetch the last 168 entries or 24 entries per day for 7 days
 
-
 // Memoized component for rendering each item
 const RenderItem = React.memo(({ item }) => (
   <View className="py-4 px-4">
