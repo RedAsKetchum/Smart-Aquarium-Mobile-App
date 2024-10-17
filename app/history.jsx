@@ -21,9 +21,10 @@ const RenderItem = React.memo(({ item }) => (
 
     {/* Temperature, pH Level, and Turbidity in a row with increased font size */}
     <View className="mt-2">
-      <Text className="text-black text-base">{`Temperature: ${item.Sensor1}`}</Text>
+      <Text className="text-black text-base">{`Temperature: ${item.Sensor1} °F`}</Text>
+      <Text className="text-black text-base">{`Turbidity: ${item.Sensor3} NTU`}</Text>
       <Text className="text-black text-base">{`pH Level: ${item.Sensor2}`}</Text>
-      <Text className="text-black text-base">{`Turbidity: ${item.Sensor3}`}</Text>
+      {/* <Text className="text-black text-base">{`Turbidity: ${item.Sensor3} NTU`}</Text> */}
     </View>
   </View>
 ));
