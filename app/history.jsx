@@ -21,11 +21,46 @@ const RenderItem = React.memo(({ item }) => (
 
     <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor3Timestamp}`}</Text>
     <Text className="text-black">{`Turbidity: ${item.Sensor3}`}</Text>
+
   </View>
 ));
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState([]);
+
+  // Fetch data from Adafruit IO and remove duplicates and handles malformed entries
+// const fetchHistoryData = async () => {
+//   try {
+//     const response = await fetch(FEED_URL, {
+//       headers: {
+//         'X-AIO-Key': AIO_KEY,
+//       },
+//     });
+//     const data = await response.json();  // Fetch the array of data
+    
+//     // Debugging: Log the fetched data before parsing
+//     console.log('Fetched data:', data);
+
+//     const parsedData = data.map((item) => {
+//       try {
+//         console.log('Raw item value:', item.value);  // Debugging: log raw JSON string
+//         return JSON.parse(item.value);  // Parse each JSON string
+//       } catch (error) {
+//         console.error('Error parsing JSON:', error, item.value);  // Log the exact error and problematic JSON
+//         return null;  // Return null to handle malformed JSON
+//       }
+//     }).filter(Boolean);  // Remove null values caused by parsing failures
+
+//     // Remove duplicates based on the ID field
+//     const uniqueData = parsedData.filter((item, index, self) =>
+//       index === self.findIndex((t) => t.ID === item.ID)
+//     );
+
+//     setHistoryData(uniqueData);  // Set the state with de-duplicated data
+//   } catch (error) {
+//     console.error('Error fetching data:', error);
+//   }
+// };
 
   // Fetch data from Adafruit IO and remove duplicates
   const fetchHistoryData = async () => {
