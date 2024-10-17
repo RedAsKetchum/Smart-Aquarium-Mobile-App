@@ -12,6 +12,7 @@ const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KE
 // Memoized component for rendering each item
 const RenderItem = React.memo(({ item }) => (
   <View className="py-4 px-4">
+    <Text className="font-bold">{`Date: ${item.Date}`}</Text>
     <Text className="text-gray-500">{`Time: ${item.Sensor1Timestamp}`}</Text>
     <Text className="text-black">{`Temperature: ${item.Sensor1}`}</Text>
 
@@ -77,7 +78,6 @@ export default function HistoryPage() {
         renderItem={({ item }) => <RenderItem item={item} />}  // Use memoized component
         keyExtractor={(item, index) => {
           const key = item.ID ? item.ID.toString() : index.toString();
-          //console.log("Key:", key);  // Debug key extraction
           return key;
         }}
         ItemSeparatorComponent={() => <View className="h-[1px] bg-gray-300 mx-4" />}
