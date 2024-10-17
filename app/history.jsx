@@ -7,23 +7,29 @@ import { router } from 'expo-router';
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 const FEED_KEY = 'temperature-sensor';  // Your specific feed key
-const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data`;  // Feed URL
+const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?limit=168`;  // Fetch the last 168 entries or 24 entries per day for 7 days
+
 
 // Memoized component for rendering each item
 const RenderItem = React.memo(({ item }) => (
   <View className="py-4 px-4">
-    <Text className="font-bold">{`Date: ${item.Date}`}</Text>
-    <Text className="text-gray-500">{`Time: ${item.Sensor1Timestamp}`}</Text>
-    <Text className="text-black">{`Temperature: ${item.Sensor1}`}</Text>
+    {/* Date (white) and Time (purple) in a single line with increased font size */}
+    <Text className="font-bold text-lg">
+      <Text className="text-white">{`${item.Date}`}</Text>
+      <Text className="text-black">{`  ${item.Sensor1Timestamp}`}</Text>
+    </Text>
 
-    <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor2Timestamp}`}</Text>
-    <Text className="text-black">{`pH Level: ${item.Sensor2}`}</Text>
-
-    <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor3Timestamp}`}</Text>
-    <Text className="text-black">{`Turbidity: ${item.Sensor3}`}</Text>
-
+    {/* Temperature, pH Level, and Turbidity in a row with increased font size */}
+    <View className="mt-2">
+      <Text className="text-black text-base">{`Temperature: ${item.Sensor1}`}</Text>
+      <Text className="text-black text-base">{`pH Level: ${item.Sensor2}`}</Text>
+      <Text className="text-black text-base">{`Turbidity: ${item.Sensor3}`}</Text>
+    </View>
   </View>
 ));
+
+ {/* <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor2Timestamp}`}</Text> */}
+  {/* <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor3Timestamp}`}</Text> */}
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState([]);
