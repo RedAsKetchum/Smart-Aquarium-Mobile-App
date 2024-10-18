@@ -3,6 +3,7 @@ import { View, Text, FlatList, SafeAreaView } from 'react-native';
 import { ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { router } from 'expo-router';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
@@ -33,6 +34,7 @@ const RenderItem = React.memo(({ item }) => (
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState([]);
+  const navigation = useNavigation(); // Use useNavigation hook
 
   // Fetch data from Adafruit IO and remove duplicates
   const fetchHistoryData = async () => {
@@ -73,7 +75,7 @@ export default function HistoryPage() {
       <View className="flex-row items-center justify-center px-4 mt-2 relative">
         {/* Back button */}
         <TouchableOpacity 
-          onPress={() => router.push('/')} 
+          onPress={() => navigation.goBack()} // This navigates back to the previous screen
           className="absolute left-0 p-2" >
           <Icon name="arrow-back" size={35} color="white" />
         </TouchableOpacity>
