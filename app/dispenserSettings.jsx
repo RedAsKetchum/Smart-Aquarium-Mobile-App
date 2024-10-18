@@ -8,11 +8,15 @@ import { Picker } from '@react-native-picker/picker'; // Picker for scrollable n
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import { Alert } from 'react-native'; // Import Alert component
 
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+
 export default function DispenserSettings() {
   const [scheduledValue, setScheduledValue] = useState(1); // State for Scheduled option
   const [manualValue, setManualValue] = useState(1); // State for Manual option
   const [isScheduledPickerEnabled, setIsScheduledPickerEnabled] = useState(false); // State for enabling/disabling the Scheduled picker
   const [isManualPickerEnabled, setIsManualPickerEnabled] = useState(false); // State for enabling/disabling the Manual picker
+
+  const navigation = useNavigation(); // Use useNavigation hook
 
   // Retrieve saved values from AsyncStorage when component mounts
   useEffect(() => {
@@ -85,7 +89,9 @@ export default function DispenserSettings() {
           <View className="flex-row items-center justify-center px-4 mt-20 relative">
             {/* Back button */}
             <TouchableOpacity 
-                onPress={() => router.push('/')} 
+                // onPress={() => router.push('/settings')} 
+                onPress={() => navigation.goBack()} // This navigates back to the previous screen
+
                 className="absolute left-0 p-2"
             >
                 <Icon name="arrow-back" size={35} color="white" />
@@ -188,7 +194,7 @@ export default function DispenserSettings() {
 
             {/* Reset to Default Button */}
             <TouchableOpacity 
-              className="bg-gray-50/40 rounded-full h-16 mt-6 flex items-center justify-center"
+              className="bg-gray-50/40 rounded-full h-16 mt-12 flex items-center justify-center"
               onPress={resetToDefault}
             >
               <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>Reset to Default</Text>
