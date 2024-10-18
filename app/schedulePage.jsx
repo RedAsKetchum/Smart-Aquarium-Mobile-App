@@ -17,44 +17,25 @@ export default function SchedulePage() {
     const [updating, setUpdating] = useState(false); // Throttle updates to Adafruit IO
     const { newSchedule } = useLocalSearchParams();  // Get new schedule from parameters
 
-    // Helper function to add a schedule to Adafruit IO
+    // Function to send a new schedule to Adafruit IO
     const sendScheduleToAdafruitIO = async (schedule) => {
         try {
-            await axios.post(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
-                value: JSON.stringify(schedule)
+            const response = await axios.post(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
+                value: JSON.stringify(schedule)  // Send the schedule data
             }, {
                 headers: {
                     'X-AIO-Key': ADAFRUIT_IO_KEY
                 }
             });
-            console.log("Schedule sent to Adafruit IO:", schedule);
+
+            console.log("Schedule sent to Adafruit IO:", response.data);
         } catch (error) {
             console.error('Error adding schedule to Adafruit IO:', error);
             Alert.alert('Error', 'Failed to add schedule to Adafruit IO.');
         }
     };
 
-    // Helper function to update a schedule in Adafruit IO
-    const updateScheduleInAdafruitIO = async (id, updatedSchedule) => {
-        try {
-            setUpdating(true); // Prevent duplicate updates
-            await axios.put(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${id}`, {
-                value: JSON.stringify(updatedSchedule)
-            }, {
-                headers: {
-                    'X-AIO-Key': ADAFRUIT_IO_KEY
-                }
-            });
-            console.log("Schedule updated in Adafruit IO:", updatedSchedule);
-            setUpdating(false);
-        } catch (error) {
-            console.error('Error updating schedule in Adafruit IO:', error);
-            setUpdating(false);
-            Alert.alert('Error', 'Failed to update schedule in Adafruit IO.');
-        }
-    };
-
-    // Fetch existing schedules from Adafruit IO on component mount
+        // Function to fetch all schedules from Adafruit IO
     const fetchSchedules = async () => {
         try {
             const response = await axios.get(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
@@ -62,53 +43,74 @@ export default function SchedulePage() {
                     'X-AIO-Key': ADAFRUIT_IO_KEY
                 }
             });
-            const fetchedSchedules = response.data.map(item => ({
-                ...JSON.parse(item.value),
-                id: item.id  // Keep track of the ID for updates or deletion
-            }));
-            setSchedules(fetchedSchedules);  // Set the fetched schedules
+
+            // Log full response data to check for 'id' field presence
+            console.log("Fetched Schedules from Adafruit IO:", response.data);
+
+            // Map through the response data and parse the inner 'value' field
+            const fetchedSchedules = response.data.map(item => {
+                try {
+                    const parsedSchedule = JSON.parse(item.value);
+                    parsedSchedule.id = item.id;  // Ensure the ID is stored for each schedule
+                    return parsedSchedule;
+                } catch (error) {
+                    console.error('Failed to parse schedule data:', item.value, error);
+                    return null;  // Skip this item if it can't be parsed
+                }
+            }).filter(item => item !== null);  // Filter out any null values (failed parses)
+
+            setSchedules(fetchedSchedules);
         } catch (error) {
             console.error('Error fetching schedules from Adafruit IO:', error);
             Alert.alert('Error', 'Failed to fetch schedules.');
         }
     };
 
+
     useEffect(() => {
         fetchSchedules();  // Fetch schedules on mount
     }, []);
 
-    // Helper function to add a new schedule
-    const addSchedule = (schedule) => {
-        // Check if the schedule already exists to prevent duplicates
-        const exists = schedules.some(s => s.time === schedule.time && s.days === schedule.days);
-        if (exists) {
-            console.log("Schedule already exists. Skipping addition.");
+    // Flag to prevent adding multiple schedules simultaneously
+    let isAddingSchedule = false;
+
+    // Function to add a new schedule
+    const addSchedule = async (schedule) => {
+        if (isAddingSchedule) {
+            console.log("A schedule is already being added. Skipping this request.");
             return;
         }
 
-        setSchedules((prevSchedules) => {
-            const newSchedules = [...prevSchedules, { ...schedule, enabled: true }];
-            console.log("New schedules state after adding:", newSchedules);  // Log the new state after adding
-            return newSchedules;
-        });
+        isAddingSchedule = true;
 
-            // Send the new schedule to Adafruit IO
-        sendScheduleToAdafruitIO({ ...schedule, enabled: true }).then(() => {
-            fetchSchedules();  // Re-fetch the schedules after adding
-        });
+        try {
+            const existsLocally = schedules.some(s => s.time === schedule.time && s.days === schedule.days);
+            if (existsLocally) {
+                console.log("Schedule already exists locally. Skipping addition.");
+                isAddingSchedule = false;
+                return;
+            }
+
+            await sendScheduleToAdafruitIO({ ...schedule, enabled: true, executed: false });
+            fetchSchedules();  // Re-fetch schedules after adding
+        } catch (error) {
+            console.error('Error adding schedule:', error);
+        } finally {
+            isAddingSchedule = false;
+        }
     };
 
-    // Handle new schedule received via local params
+    // If a new schedule is passed via navigation params, add it
     useEffect(() => {
         if (newSchedule) {
             try {
                 const parsedSchedule = JSON.parse(newSchedule);
-
-                // Log the parsed schedule
-                console.log("Parsed new schedule:", parsedSchedule);
-
-                // Add the parsed schedule to the list if it doesn't already exist
-                addSchedule(parsedSchedule);
+                const exists = schedules.some(s => s.time === parsedSchedule.time && s.days === parsedSchedule.days);
+                if (!exists) {
+                    addSchedule(parsedSchedule);
+                } else {
+                    console.log("Schedule already exists. Skipping addition.");
+                }
             } catch (error) {
                 console.error('Failed to parse new schedule:', error);
                 Alert.alert('Error', 'Failed to add new schedule.');
@@ -117,82 +119,93 @@ export default function SchedulePage() {
     }, [newSchedule]);
 
     const toggleSwitch = async (index) => {
-        if (updating) return; // Prevent updating if already in process
+        if (updating) return;
     
         const scheduleToToggle = schedules[index];
-        const newSchedule = { ...scheduleToToggle, enabled: !scheduleToToggle.enabled };
-    
-        // First, delete the old schedule from Adafruit IO
-        try {
-            // Assuming scheduleToToggle.id is the Adafruit IO schedule ID
-            await axios.delete(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${scheduleToToggle.id}`, {
-                headers: {
-                    'X-AIO-Key': ADAFRUIT_IO_KEY
-                }
-            });
-            console.log(`Schedule with ID ${scheduleToToggle.id} deleted successfully from Adafruit IO.`);
-        } catch (error) {
-            console.error('Error deleting schedule from Adafruit IO:', error);
-            Alert.alert('Error', 'Failed to delete schedule from Adafruit IO.');
-            return; // Stop further execution if delete fails
+        
+        // Check if the ID is valid
+        if (!scheduleToToggle.id) {
+            console.error("Schedule ID is missing or invalid:", scheduleToToggle.id);
+            Alert.alert("Error", "Schedule ID is missing or invalid.");
+            return;
         }
     
-        // Now, add a new schedule with the opposite enabled state
-        try {
-            const response = await axios.post(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
-                value: JSON.stringify(newSchedule)
-            }, {
-                headers: {
-                    'X-AIO-Key': ADAFRUIT_IO_KEY
-                }
-            });
-            
-            const newScheduleId = response.data.id; // Get the new ID from the response
-            console.log(`New schedule entry created in Adafruit IO: ${JSON.stringify(newSchedule)}`);
+        const updatedSchedule = {
+            ...scheduleToToggle, 
+            enabled: !scheduleToToggle.enabled,
+            executed: scheduleToToggle.executed || false
+        };
     
-            // Update the schedule with the new ID returned by Adafruit IO
+        const finalPayload = { value: JSON.stringify(updatedSchedule) };
+        const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${scheduleToToggle.id}`;
+    
+        try {
+            const response = await axios.put(url, finalPayload, {
+                headers: { 'X-AIO-Key': ADAFRUIT_IO_KEY }
+            });
+            console.log(`Schedule with ID ${scheduleToToggle.id} updated successfully.`);
+    
             const updatedSchedules = schedules.map((schedule, i) =>
-                i === index ? { ...newSchedule, id: newScheduleId } : schedule
+                i === index ? { ...updatedSchedule, id: scheduleToToggle.id } : schedule
             );
-            setSchedules(updatedSchedules);  // Update the state with the new schedule
+            setSchedules(updatedSchedules);
+            
         } catch (error) {
-            console.error('Error creating new schedule in Adafruit IO:', error);
-            Alert.alert('Error', 'Failed to create new schedule in Adafruit IO.');
+            console.error('Error updating schedule:', error);
+            Alert.alert('Error', 'Failed to update schedule.');
         }
     };
-      
-    // Function to delete all schedules from Adafruit IO
+    
+
     const deleteAllSchedules = async () => {
-        try {
-            // Fetch all schedules from Adafruit IO
-            const response = await axios.get(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
-                headers: {
-                    'X-AIO-Key': ADAFRUIT_IO_KEY
-                }
-            });
-
-            const dataPoints = response.data;
-
-            // Loop through each data point and delete it
-            for (let dataPoint of dataPoints) {
-                await axios.delete(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${dataPoint.id}`, {
-                    headers: {
-                        'X-AIO-Key': ADAFRUIT_IO_KEY
+        Alert.alert(
+            'Delete All Schedules',
+            'Are you sure you want to delete all schedules?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    onPress: async () => {
+                        try {
+                            // Set a loading state if necessary
+                            setUpdating(true);
+    
+                            // Loop through each schedule and delete from Adafruit IO
+                            for (const schedule of schedules) {
+                                const id = schedule.id;  // Get the ID for deletion
+                                const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${id}`;
+    
+                                try {
+                                    // Send DELETE request for each schedule
+                                    await axios.delete(url, {
+                                        headers: {
+                                            'X-AIO-Key': ADAFRUIT_IO_KEY
+                                        }
+                                    });
+                                    
+                                    console.log(`Deleted schedule with ID: ${id}`);
+                                } catch (error) {
+                                    console.error(`Error deleting schedule with ID ${id}:`, error);
+                                }
+                            }
+    
+                            // After all deletions, clear the local schedules state
+                            setSchedules([]);
+                            console.log('All schedules deleted successfully.');
+                        } catch (error) {
+                            console.error('Error deleting schedules from Adafruit IO:', error);
+                            Alert.alert('Error', 'Failed to delete all schedules from Adafruit IO.');
+                        } finally {
+                            // Reset the updating state
+                            setUpdating(false);
+                        }
                     }
-                });
-            }
-
-            // Clear the local schedules state
-            setSchedules([]);
-
-            console.log('All schedules deleted successfully.');
-            Alert.alert('Success', 'All schedules deleted successfully.');
-
-        } catch (error) {
-            console.error('Error deleting schedules from Adafruit IO:', error);
-            Alert.alert('Error', 'Failed to delete schedules from Adafruit IO.');
-        }
+                },
+            ],
+            { cancelable: true }
+        );
     };
+    
 
     return (
         <GestureHandlerRootView style={styles.container}>  
