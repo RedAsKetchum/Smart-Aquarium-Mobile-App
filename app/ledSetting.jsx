@@ -20,6 +20,20 @@ const ColorPickerComponent = () => {
   const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
   const [mqttClient, setMqttClient] = useState(null);
 
+  // Function to convert HEX to RGB
+  const hexToRgb = (hex) => {
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = (bigint & 255);
+    return { r, g, b };
+  };
+
+  // Function to convert RGB to HEX
+  const rgbToHex = (r, g, b) => {
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
+
   useEffect(() => {
     const fetchSavedSettings = async () => {
       try {
@@ -91,16 +105,6 @@ const ColorPickerComponent = () => {
     }
   };
 
-  const hexToRgb = (hex) => {
-    const bigint = parseInt(hex.slice(1), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = (bigint & 255);
-    return { r, g, b };
-  };
-
-  const rgbToHex = (r, g, b) => `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-
   const saveToAdafruitIO = async (color, brightness) => {
     const rgb = hexToRgb(color);
     const controlMessage = `${rgb.r},${rgb.g},${rgb.b},${brightness},SAVED`;  // Add "SAVED" as an indicator
@@ -117,7 +121,7 @@ const ColorPickerComponent = () => {
     } catch (error) {
       console.error("Error saving to Adafruit IO: ", error.message || error);
     }
-};
+  };
 
   const resetToDefault = () => {
     const defaultColor = '#00ff00';  

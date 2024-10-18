@@ -61,7 +61,7 @@ const settings = () => {
           </TouchableOpacity>
           {/* Dispenser Settings */}
           <TouchableOpacity style={styles.buttons}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+            onPress={() => router.push('/dispenserSettings')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Dispenser Settings
             </Text>
