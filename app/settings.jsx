@@ -41,25 +41,32 @@ const settings = () => {
   return (
     <GestureHandlerRootView style={styles.container}>  
       <SafeAreaView className="bg-primary h-full">
-        <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        
-        {/* Back button */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} // This navigates back to the previous screen
-            style={{ padding: 10 }}
-          >    
-            <Icon name="arrow-back" size={35} color="white" />
-          </TouchableOpacity>
-        </View>
+        <ImageBackground 
+          source={require('../assets/images/gradient.png')} 
+          className="flex-1 absolute top-0 left-0 right-0 bottom-0" 
+          resizeMode="cover" 
+        />
   
-        {/* Centered title with safe margin to avoid the dynamic island */}
+        {/* Back button */}
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={{ 
+            position: 'absolute', 
+            left: 10, 
+            top: 70,  // Adjust this to fit with the dynamic island on your device
+            padding: 10 
+          }}
+        >
+          <Icon name="arrow-back" size={35} color="white" />
+        </TouchableOpacity>
+  
+        {/* Centered title */}
         <Text style={{ 
           fontSize: 24, 
           fontWeight: 'bold', 
           color: 'white', 
           position: 'absolute', 
-          top: 82,  // Adjust this value based on your device's dynamic island height
+          top: 83,  // Adjust based on dynamic island
           left: 0, 
           right: 0, 
           textAlign: 'center' 
@@ -67,8 +74,17 @@ const settings = () => {
           Settings 
         </Text>
   
-        <ScrollView contentContainerStyle={{ height: '100%', marginTop: 10 }}>
-          <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center', marginTop: 10}}> Connected to: "Network Name" </Text>
+        {/* Connected to Network title */}
+        <ScrollView contentContainerStyle={{ height: '100%', marginTop: 20 }}>
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: 'bold', 
+            color: 'white', 
+            textAlign: 'center', 
+            marginTop: 70 // Adjust based on space needed below the title
+          }}>
+            Connected to: "Network Name"
+          </Text>
   
           {/* Sensor Settings */}
           <TouchableOpacity style={styles.buttons} onPress={() => console.log("Sensor Settings Pressed")}>
@@ -104,11 +120,12 @@ const settings = () => {
               Format
             </Text>
           </TouchableOpacity>
-
         </ScrollView>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
+  
+  
 };
 
 export default settings;
