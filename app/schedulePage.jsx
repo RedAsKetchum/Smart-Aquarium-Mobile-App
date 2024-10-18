@@ -116,20 +116,51 @@ export default function SchedulePage() {
         }
     }, [newSchedule]);
 
-    // Handle the toggle switch for individual schedules
-    const toggleSwitch = (index) => {
+    const toggleSwitch = async (index) => {
         if (updating) return; // Prevent updating if already in process
-
-        const updatedSchedules = schedules.map((schedule, i) =>
-            i === index ? { ...schedule, enabled: !schedule.enabled } : schedule
-        );
-        setSchedules(updatedSchedules);  // Update the state to reflect the changes
-
-        // Send the updated schedule to Adafruit IO by updating the existing one using its ID
-        const scheduleToUpdate = updatedSchedules[index];
-        updateScheduleInAdafruitIO(scheduleToUpdate.id, scheduleToUpdate);
+    
+        const scheduleToToggle = schedules[index];
+        const newSchedule = { ...scheduleToToggle, enabled: !scheduleToToggle.enabled };
+    
+        // First, delete the old schedule from Adafruit IO
+        try {
+            // Assuming scheduleToToggle.id is the Adafruit IO schedule ID
+            await axios.delete(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${scheduleToToggle.id}`, {
+                headers: {
+                    'X-AIO-Key': ADAFRUIT_IO_KEY
+                }
+            });
+            console.log(`Schedule with ID ${scheduleToToggle.id} deleted successfully from Adafruit IO.`);
+        } catch (error) {
+            console.error('Error deleting schedule from Adafruit IO:', error);
+            Alert.alert('Error', 'Failed to delete schedule from Adafruit IO.');
+            return; // Stop further execution if delete fails
+        }
+    
+        // Now, add a new schedule with the opposite enabled state
+        try {
+            const response = await axios.post(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
+                value: JSON.stringify(newSchedule)
+            }, {
+                headers: {
+                    'X-AIO-Key': ADAFRUIT_IO_KEY
+                }
+            });
+            
+            const newScheduleId = response.data.id; // Get the new ID from the response
+            console.log(`New schedule entry created in Adafruit IO: ${JSON.stringify(newSchedule)}`);
+    
+            // Update the schedule with the new ID returned by Adafruit IO
+            const updatedSchedules = schedules.map((schedule, i) =>
+                i === index ? { ...newSchedule, id: newScheduleId } : schedule
+            );
+            setSchedules(updatedSchedules);  // Update the state with the new schedule
+        } catch (error) {
+            console.error('Error creating new schedule in Adafruit IO:', error);
+            Alert.alert('Error', 'Failed to create new schedule in Adafruit IO.');
+        }
     };
-
+      
     // Function to delete all schedules from Adafruit IO
     const deleteAllSchedules = async () => {
         try {

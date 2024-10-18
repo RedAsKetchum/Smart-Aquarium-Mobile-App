@@ -13,7 +13,7 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { styles } from './AppStyles'; //imports app styles for components using stylesheet
 import { styled } from 'nativewind';
 import axios from 'axios'; //for servo motor control
-import schedulePage from './schedulePage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
@@ -67,17 +67,12 @@ export default function App() {
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['18%', '32%'];
-
   const [temperatureSensor, setTemperatureSensor] = useState(-1);
   const [pHSensor, setpHSensor] = useState(-1);
   const [turbiditySensor, setTurbidity] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [isLightOn, setIsLightOn] = useState(true);  // State to track LED status
-
-  //Used to Display Data on the Homescreen Gauge
   const temperatureInFahrenheit = (temperatureSensor);
-  
-  // Adjust the key based on your data structure
   const maxGauge = 100; // Max value of the gauge
 
   // Custom handle component with a centered indicator bar
@@ -175,25 +170,32 @@ const fetchSensorData = async () => {
           return <ActivityIndicator size="large" color="#0000ff" />;
         }
 
-  const handleActivateServo = async () => {
+  const handleActivateServo = async (manualValue) => {
     const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
-    
+  
     try {
-      // Send the "activate" command to the Adafruit IO feed
-      await axios.post(url, {
-        value: "activate"  // This value will be used by your ESP32 code to activate the servo
-      }, {
-        headers: {
-          "X-AIO-Key": AIO_KEY,
-          "Content-Type": "application/json"
-        }
-      });
-
-      console.log("Servo activation command sent.");
+      // Loop to activate the servo manualValue times
+      for (let i = 0; i < manualValue; i++) {
+        await axios.post(url, {
+          value: "activate"  // Send the "activate" command
+        }, {
+          headers: {
+            "X-AIO-Key": AIO_KEY,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        console.log(`Servo activation command sent (${i + 1}/${manualValue}).`);
+        
+        // You can add a delay between activations if needed (e.g., 1 second delay)
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 1000 ms = 1 second
+      }
+  
+      console.log(`Servo activated ${manualValue} times.`);
     } catch (error) {
       console.error("Error sending command:", error);
     }
-  };
+  };  
 
   return (
 
@@ -314,6 +316,7 @@ const fetchSensorData = async () => {
                 handlePress={() => router.push('/settings')}
                 containerStyles="w-full mt-5"
               />
+
             </View>
           </View>
         </ScrollView>
@@ -334,7 +337,7 @@ const fetchSensorData = async () => {
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
                 
                 {/* Feeding Button */}
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
                   
                   //onPress={moveServo}
@@ -348,6 +351,26 @@ const fetchSensorData = async () => {
                   <Image
                     source={require('../assets/icons/feedingButton.png')}
                     style={styles.imageButton}  
+                  />
+                </TouchableOpacity> */}
+
+                {/* Feeding Button */}
+                <TouchableOpacity
+                  style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
+                  onPress={async () => {
+                    try {
+                      const savedManualValue = await AsyncStorage.getItem('manualValue');
+                      const manualValue = savedManualValue ? parseInt(savedManualValue, 10) : 1; // Default to 1 if no value is found
+                      handleActivateServo(manualValue);  // Pass manualValue to the function to activate the servo
+                      console.log(`Feeding button pressed with manual value: ${manualValue}`);
+                    } catch (error) {
+                      console.log('Error retrieving manual value:', error);
+                    }
+                  }}
+                >
+                  <Image
+                    source={require('../assets/icons/feedingButton.png')}
+                    style={styles.imageButton}
                   />
                 </TouchableOpacity>
 
@@ -398,13 +421,13 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Bubbles Button */}
+                {/* LED Strip Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Bubbles button pressed.')}
+                  onPress={() => router.push('/ledSetting')}
                 >
                   <Image
-                    source={require('../assets/icons/bubblesButton.png')}  
+                    source={require('../assets/icons/ledStripButton.png')}  
                     style={styles.imageButton}  
                   />
                 </TouchableOpacity>
