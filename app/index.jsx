@@ -421,13 +421,13 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Bubbles Button */}
+                {/* LED Strip Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Bubbles button pressed.')}
+                  onPress={() => router.push('/ledSetting')}
                 >
                   <Image
-                    source={require('../assets/icons/bubblesButton.png')}  
+                    source={require('../assets/icons/ledStripButton.png')}  
                     style={styles.imageButton}  
                   />
                 </TouchableOpacity>
