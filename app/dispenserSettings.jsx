@@ -51,10 +51,11 @@ export default function DispenserSettings() {
 
 
   // Function to reset the values to default (set to 1)
+  // Function to reset the values to default (set to 1)
   const resetToDefault = async () => {
     Alert.alert(
       "Reset to Default",
-      "Are you sure you want to reset the food dispenser total to default?",
+      "Are you sure you want to reset the dispenser total to default values?",
       [
         {
           text: "Cancel",
@@ -64,10 +65,19 @@ export default function DispenserSettings() {
         {
           text: "OK",
           onPress: async () => {
-            // This code will run if the user presses "OK"
+            // Update the UI state
             setScheduledValue(1);
             setManualValue(1);
-            await saveValues(); // Save default values
+            
+            try {
+              // Save the default values to AsyncStorage
+              await AsyncStorage.setItem('scheduledValue', '1');
+              await AsyncStorage.setItem('manualValue', '1');
+              console.log('Total reset to default');
+            } catch (error) {
+              console.log('Error saving default values', error);
+            }
+
             alert('Total reset to default');
           },
         }
