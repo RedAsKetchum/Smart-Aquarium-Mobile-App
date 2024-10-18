@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { Client, Message } from 'paho-mqtt';
 import { styles } from './AppStyles';  
+import { useNavigation } from '@react-navigation/native';
 
 const AIO_USERNAME = 'RedAsKetchum';  // Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Adafruit IO key
@@ -15,6 +16,7 @@ const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/l
 const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define Adafruit IO topic for color
 
 const ColorPickerComponent = () => {
+  const navigation = useNavigation(); // Use useNavigation hook
   const router = useRouter();
   const [selectedColor, setSelectedColor] = useState('#00ff00');  // Default to green (RGB: 0, 255, 0)
   const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
@@ -133,7 +135,7 @@ const ColorPickerComponent = () => {
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
-          <TouchableOpacity onPress={() => router.push('/settings')} style={{padding: 10, marginLeft: 10}}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{padding: 10, marginLeft: 10}}>
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{padding: 10, marginRight: 18}}>
