@@ -47,33 +47,22 @@ const settings = () => {
           resizeMode="cover" 
         />
   
-        {/* Back button */}
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={{ 
-            position: 'absolute', 
-            left: 10, 
-            top: 70,  // Adjust this to fit with the dynamic island on your device
-            padding: 10 
-          }}
-        >
-          <Icon name="arrow-back" size={35} color="white" />
-        </TouchableOpacity>
-  
-        {/* Centered title */}
-        <Text style={{ 
-          fontSize: 24, 
-          fontWeight: 'bold', 
-          color: 'white', 
-          position: 'absolute', 
-          top: 83,  // Adjust based on dynamic island
-          left: 0, 
-          right: 0, 
-          textAlign: 'center' 
-        }}> 
-          Settings 
-        </Text>
-  
+        {/* Back button and Settings title sharing the same marginTop */}
+        <View className="flex-row items-center justify-center px-4 mt-5 relative">
+          {/* Back button */}
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="absolute left-0 p-2"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}  // Expands clickable area
+          >
+            <Icon name="arrow-back" size={35} color="white" />
+          </TouchableOpacity>
+
+          <Text className="text-2xl font-bold text-white text-center">
+            Settings
+          </Text>
+        </View>
+
         {/* Connected to Network title */}
         <ScrollView contentContainerStyle={{ height: '100%', marginTop: 20 }}>
           <Text style={{ 
@@ -81,7 +70,7 @@ const settings = () => {
             fontWeight: 'bold', 
             color: 'white', 
             textAlign: 'center', 
-            marginTop: 70 // Adjust based on space needed below the title
+            marginTop: 0 
           }}>
             Connected to: "Network Name"
           </Text>
@@ -124,6 +113,8 @@ const settings = () => {
       </SafeAreaView>
     </GestureHandlerRootView>
   );
+  
+  
   
   
 };
