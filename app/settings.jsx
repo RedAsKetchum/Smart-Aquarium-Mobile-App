@@ -5,8 +5,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
 const settings = () => {
+
+  const navigation = useNavigation(); // Use useNavigation hook
 
   // Function to send reboot command to Adafruit IO
   const sendRebootCommand = async () => {
@@ -39,54 +42,69 @@ const settings = () => {
     <GestureHandlerRootView style={styles.container}>  
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
+        
         {/* Back button */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
           <TouchableOpacity 
-            onPress={() => router.push('/')} 
+            onPress={() => navigation.goBack()} // This navigates back to the previous screen
             style={{ padding: 10 }}
           >    
             <Icon name="arrow-back" size={35} color="white" />
           </TouchableOpacity>
-          
         </View>
-        <Text style={{ fontSize: 30, fontWeight: 'bold', color: 'white', textAlign: 'center'}}> Settings </Text>
+  
+        {/* Centered title with safe margin to avoid the dynamic island */}
+        <Text style={{ 
+          fontSize: 24, 
+          fontWeight: 'bold', 
+          color: 'white', 
+          position: 'absolute', 
+          top: 82,  // Adjust this value based on your device's dynamic island height
+          left: 0, 
+          right: 0, 
+          textAlign: 'center' 
+        }}> 
+          Settings 
+        </Text>
+  
         <ScrollView contentContainerStyle={{ height: '100%', marginTop: 10 }}>
-          <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center', marginTop: 10}}> Connected to: </Text>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', textAlign: 'center', marginTop: 10}}> Connected to: "Network Name" </Text>
+  
           {/* Sensor Settings */}
-          <TouchableOpacity style={styles.buttons}
-            onPress={() => console.log("Sensor Settings Pressed")}>
+          <TouchableOpacity style={styles.buttons} onPress={() => console.log("Sensor Settings Pressed")}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Sensor Settings
             </Text>
           </TouchableOpacity>
+  
           {/* Dispenser Settings */}
-          <TouchableOpacity style={styles.buttons}
-            onPress={() => router.push('/dispenserSettings')}>
+          <TouchableOpacity style={styles.buttons} onPress={() => router.push('/dispenserSettings')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
-              Dispenser Settings
+              Food Dispenser Settings
             </Text>
           </TouchableOpacity>
+  
           {/* LED Settings */}
-          <TouchableOpacity style={styles.buttons}
-            onPress={() => router.push('/ledSetting')}>
+          <TouchableOpacity style={styles.buttons} onPress={() => router.push('/ledSetting')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               LED Settings
             </Text>
           </TouchableOpacity>
+  
           {/* Reboot */}
-          <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]}
-            onPress={sendRebootCommand}>
+          <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64, marginTop: 48}]} onPress={sendRebootCommand}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Reboot
             </Text>
           </TouchableOpacity>
-           {/*Format */}
-           <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]}
-            onPress={sendRebootCommand}>
+  
+          {/* Format */}
+          <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64}]} onPress={sendRebootCommand}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>
               Format
             </Text>
           </TouchableOpacity>
+
         </ScrollView>
       </SafeAreaView>
     </GestureHandlerRootView>
