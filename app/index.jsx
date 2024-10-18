@@ -15,8 +15,6 @@ import { styled } from 'nativewind';
 import axios from 'axios'; //for servo motor control
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
@@ -69,17 +67,12 @@ export default function App() {
   const monthAndDay = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
   const sheetRef = useRef(null);
   const snapPoints = ['18%', '32%'];
-
   const [temperatureSensor, setTemperatureSensor] = useState(-1);
   const [pHSensor, setpHSensor] = useState(-1);
   const [turbiditySensor, setTurbidity] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [isLightOn, setIsLightOn] = useState(true);  // State to track LED status
-
-  //Used to Display Data on the Homescreen Gauge
   const temperatureInFahrenheit = (temperatureSensor);
-  
-  // Adjust the key based on your data structure
   const maxGauge = 100; // Max value of the gauge
 
   // Custom handle component with a centered indicator bar
@@ -176,26 +169,6 @@ const fetchSensorData = async () => {
         if (temperatureSensor === null) {
           return <ActivityIndicator size="large" color="#0000ff" />;
         }
-
-  // const handleActivateServo = async () => {
-  //   const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
-    
-  //   try {
-  //     // Send the "activate" command to the Adafruit IO feed
-  //     await axios.post(url, {
-  //       value: "activate"  // This value will be used by your ESP32 code to activate the servo
-  //     }, {
-  //       headers: {
-  //         "X-AIO-Key": AIO_KEY,
-  //         "Content-Type": "application/json"
-  //       }
-  //     });
-
-  //     console.log("Servo activation command sent.");
-  //   } catch (error) {
-  //     console.error("Error sending command:", error);
-  //   }
-  // };
 
   const handleActivateServo = async (manualValue) => {
     const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
@@ -343,6 +316,7 @@ const fetchSensorData = async () => {
                 handlePress={() => router.push('/settings')}
                 containerStyles="w-full mt-5"
               />
+
             </View>
           </View>
         </ScrollView>
@@ -447,13 +421,13 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Bubbles Button */}
+                {/* LED Strip Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('Bubbles button pressed.')}
+                  onPress={() => router.push('/ledSetting')}
                 >
                   <Image
-                    source={require('../assets/icons/bubblesButton.png')}  
+                    source={require('../assets/icons/ledStripButton.png')}  
                     style={styles.imageButton}  
                   />
                 </TouchableOpacity>
