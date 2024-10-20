@@ -74,6 +74,7 @@ export default function App() {
   const [isLightOn, setIsLightOn] = useState(true);  // State to track LED status
   const temperatureInFahrenheit = (temperatureSensor);
   const maxGauge = 100; // Max value of the gauge
+  const maxpHGauge = 14; // Max value of the pH gauge
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -115,6 +116,7 @@ const fetchSensorData = async () => {
         if (!isNaN(sensorValue2)) {
           // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
           setpHSensor(sensorValue2);  // Update state with the numeric value
+          //setpHSensor(7.20);
 
         } else {
           console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
@@ -197,6 +199,7 @@ const fetchSensorData = async () => {
     }
   };  
 
+
   return (
 
     // HomeScreen General Design
@@ -222,7 +225,7 @@ const fetchSensorData = async () => {
                     <AnimatedCircularProgress
                       size={110}
                       width={20}
-                      fill={(pHSensor / maxGauge) * 100}
+                      fill={(pHSensor / maxpHGauge) * 100}
                       tintColor="#ff1a1a"
                       backgroundColor="#d3d3d3"
                       lineCap="round"
