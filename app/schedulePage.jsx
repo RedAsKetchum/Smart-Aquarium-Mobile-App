@@ -6,6 +6,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { styles } from './AppStyles';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';  // Axios for Adafruit IO requests
+import { useNavigation } from '@react-navigation/native';
 
 // Adafruit IO Configuration
 const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  // Replace with your Adafruit IO username
@@ -13,6 +14,7 @@ const ADAFRUIT_IO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Replace with you
 const ADAFRUIT_IO_FEED = 'feeding-schedule';  // Replace with your Adafruit IO feed
 
 export default function SchedulePage() {
+    const navigation = useNavigation(); // Use useNavigation hook
     const [schedules, setSchedules] = useState([]);  // State for managing schedules
     const [updating, setUpdating] = useState(false); // Throttle updates to Adafruit IO
     const { newSchedule } = useLocalSearchParams();  // Get new schedule from parameters
@@ -215,7 +217,7 @@ export default function SchedulePage() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     {/* Back button */}
                     <TouchableOpacity 
-                        onPress={() => router.push('/')} 
+                        onPress={() => navigation.goBack()} 
                         style={{ padding: 10 }}
                     >
                         <Icon name="arrow-back" size={35} color="white" />
