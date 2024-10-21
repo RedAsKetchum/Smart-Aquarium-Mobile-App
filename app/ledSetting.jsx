@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, Alert } from 'react-native'; // Import Alert
 import Slider from '@react-native-community/slider';
 import WheelColorPicker from 'react-native-wheel-color-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -21,6 +21,9 @@ const ColorPickerComponent = () => {
   const [selectedColor, setSelectedColor] = useState('#00ff00');  // Default to green (RGB: 0, 255, 0)
   const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
   const [mqttClient, setMqttClient] = useState(null);
+  const [initialColor, setInitialColor] = useState('#00ff00'); // Store the initially fetched color
+  const [initialBrightness, setInitialBrightness] = useState(1); // Store the initially fetched brightness
+  const [isSaved, setIsSaved] = useState(true); // Track if the user has saved
 
   // Function to convert HEX to RGB
   const hexToRgb = (hex) => {
@@ -47,9 +50,16 @@ const ColorPickerComponent = () => {
         });
         const data = await response.json();
         if (data.length > 0) {
-          const [r, g, b, brightnessValue] = data[0].value.split(',');  
-          setSelectedColor(rgbToHex(Number(r), Number(g), Number(b)));
-          setBrightness(Number(brightnessValue));
+          const [r, g, b, brightnessValue] = data[0].value.split(',');
+          const savedColor = rgbToHex(Number(r), Number(g), Number(b));
+          const savedBrightness = Number(brightnessValue);
+          
+          setSelectedColor(savedColor);
+          setBrightness(savedBrightness);
+
+          // Store the initial values for reverting later
+          setInitialColor(savedColor);
+          setInitialBrightness(savedBrightness);
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
@@ -78,7 +88,6 @@ const ColorPickerComponent = () => {
 
           // Fetch saved settings before sending default values
           await fetchSavedSettings();
-          sendColorAndBrightnessToESP32(selectedColor, brightness);  // Send the fetched values
         },
         onFailure: (err) => {
           console.error('MQTT connection error:', err.message || err);
@@ -95,7 +104,6 @@ const ColorPickerComponent = () => {
       }
     };
   }, []);
-
 
   const sendColorAndBrightnessToESP32 = (color, brightness) => {
     const rgb = hexToRgb(color);
@@ -126,6 +134,9 @@ const ColorPickerComponent = () => {
         body: JSON.stringify({ value: controlMessage }),
       });
       console.log(`Color and brightness saved to Adafruit IO with indicator: ${controlMessage}`);
+
+      // Mark the settings as saved
+      setIsSaved(true);
     } catch (error) {
       console.error("Error saving to Adafruit IO: ", error.message || error);
     }
@@ -140,12 +151,36 @@ const ColorPickerComponent = () => {
     saveToAdafruitIO(defaultColor, defaultBrightness);
   };
 
+  const handleBackPress = () => {
+    if (!isSaved) {
+      Alert.alert(
+        "Unsaved Changes",
+        "You have unsaved changes. Do you want to discard them?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Discard",
+            onPress: () => {
+              // Revert to the initial values if user chooses to discard changes
+              setSelectedColor(initialColor);
+              setBrightness(initialBrightness);
+              navigation.goBack();
+            },
+            style: "destructive",
+          },
+        ]
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{padding: 10, marginLeft: 10}}>
+          <TouchableOpacity onPress={handleBackPress} style={{padding: 10, marginLeft: 10}}>
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{padding: 10, marginRight: 18}}>
@@ -161,6 +196,7 @@ const ColorPickerComponent = () => {
             onColorChange={color => {
               setSelectedColor(color);
               sendColorAndBrightnessToESP32(color, brightness);
+              setIsSaved(false); // Mark as unsaved when color is changed
             }}
             style={{width: 380, height: 400}}
             sliderSize={35}
@@ -171,6 +207,7 @@ const ColorPickerComponent = () => {
               const newBrightness = Math.max(0, brightness - 0.1);
               setBrightness(newBrightness);
               sendColorAndBrightnessToESP32(selectedColor, newBrightness);
+              setIsSaved(false); // Mark as unsaved when brightness is changed
             }}>
               <Icon name="sunny" size={30} color="#000" />
             </TouchableOpacity>
@@ -184,6 +221,7 @@ const ColorPickerComponent = () => {
                 onValueChange={(value) => {
                   setBrightness(value);
                   sendColorAndBrightnessToESP32(selectedColor, value);
+                  setIsSaved(false); // Mark as unsaved when brightness is changed
                 }}
                 minimumTrackTintColor="#FFFFFF"
                 maximumTrackTintColor="#FFFFFF"
@@ -193,6 +231,7 @@ const ColorPickerComponent = () => {
               const newBrightness = Math.min(1, brightness + 0.1);
               setBrightness(newBrightness);
               sendColorAndBrightnessToESP32(selectedColor, newBrightness);
+              setIsSaved(false); // Mark as unsaved when brightness is changed
             }}>
               <Icon name="sunny" size={40} color="#000" />
             </TouchableOpacity>
