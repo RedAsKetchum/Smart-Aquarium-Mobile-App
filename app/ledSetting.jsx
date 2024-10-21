@@ -50,14 +50,11 @@ const ColorPickerComponent = () => {
           const [r, g, b, brightnessValue] = data[0].value.split(',');  
           setSelectedColor(rgbToHex(Number(r), Number(g), Number(b)));
           setBrightness(Number(brightnessValue));
-          sendColorAndBrightnessToESP32(selectedColor, Number(brightnessValue));
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
       }
     };
-
-    fetchSavedSettings();
 
     const client = new Client('wss://io.adafruit.com/mqtt', `mqtt-client-${Date.now()}`);
     client.onConnectionLost = (responseObject) => {
@@ -70,19 +67,27 @@ const ColorPickerComponent = () => {
       console.log('Message arrived:', message.payloadString);
     };
 
-    client.connect({
-      useSSL: true,
-      userName: AIO_USERNAME,
-      password: AIO_KEY,
-      onSuccess: () => {
-        console.log('Connected to Adafruit IO via MQTT');
-        setMqttClient(client);
-        sendColorAndBrightnessToESP32('#00ff00', 1);
-      },
-      onFailure: (err) => {
-        console.error('MQTT connection error:', err.message || err);
-      },
-    });
+    const initializeMqtt = () => {
+      client.connect({
+        useSSL: true,
+        userName: AIO_USERNAME,
+        password: AIO_KEY,
+        onSuccess: async () => {
+          console.log('Connected to Adafruit IO via MQTT');
+          setMqttClient(client);
+
+          // Fetch saved settings before sending default values
+          await fetchSavedSettings();
+          sendColorAndBrightnessToESP32(selectedColor, brightness);  // Send the fetched values
+        },
+        onFailure: (err) => {
+          console.error('MQTT connection error:', err.message || err);
+        },
+      });
+    };
+
+    // Initialize MQTT and fetch settings in order
+    initializeMqtt();
 
     return () => {
       if (client.isConnected()) {
@@ -90,6 +95,7 @@ const ColorPickerComponent = () => {
       }
     };
   }, []);
+
 
   const sendColorAndBrightnessToESP32 = (color, brightness) => {
     const rgb = hexToRgb(color);
