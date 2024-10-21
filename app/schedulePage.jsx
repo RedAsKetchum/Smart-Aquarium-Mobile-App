@@ -217,21 +217,18 @@ export default function SchedulePage() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     {/* Back button */}
                     <TouchableOpacity 
-                        onPress={() => navigation.goBack()} 
+                        onPress={() => router.push('/')} 
                         style={{ padding: 10 }}
                     >
                         <Icon name="arrow-back" size={35} color="white" />
                     </TouchableOpacity>
-                    <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>Feeding Schedule</Text>
+                    <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>Schedule</Text>
                     {/* Add Schedule Button */}
                     <TouchableOpacity onPress={() => router.push('/addSchedule')} style={{ padding: 10 }}>
                         <Icon name="add-outline" size={35} color="white" />
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]} 
-                    onPress={deleteAllSchedules}>
-                    <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>Delete All Schedule</Text>
-                </TouchableOpacity>
+                
                 {/* Schedule list */}
                 <ScrollView contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}>
                     <View style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: 10, borderRadius: 15, marginTop: 15 }}>
@@ -258,8 +255,14 @@ export default function SchedulePage() {
                             </View>
                         ))}
                     </View>
+                    <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]} 
+                    onPress={deleteAllSchedules}>
+                    <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>Delete All Schedule</Text>
+                </TouchableOpacity>
                 </ScrollView>
+                
             </SafeAreaView>
+            
         </GestureHandlerRootView>
     );
 }
