@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, Alert } from 'react-native'; // Import Alert
+import { View, Text, TouchableOpacity, ImageBackground, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
 import WheelColorPicker from 'react-native-wheel-color-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -24,6 +24,7 @@ const ColorPickerComponent = () => {
   const [initialColor, setInitialColor] = useState('#00ff00'); // Store the initially fetched color
   const [initialBrightness, setInitialBrightness] = useState(1); // Store the initially fetched brightness
   const [isSaved, setIsSaved] = useState(true); // Track if the user has saved
+  const [isLedOn, setIsLedOn] = useState(true); // Track if the LED is on or off
 
   // Function to convert HEX to RGB
   const hexToRgb = (hex) => {
@@ -50,19 +51,30 @@ const ColorPickerComponent = () => {
         });
         const data = await response.json();
         if (data.length > 0) {
-          const [r, g, b, brightnessValue] = data[0].value.split(',');
+          const [r, g, b, brightnessValue, savedValue] = data[0].value.split(',');
           const savedColor = rgbToHex(Number(r), Number(g), Number(b));
           const savedBrightness = Number(brightnessValue);
           
           setSelectedColor(savedColor);
           setBrightness(savedBrightness);
+          setIsLedOn(savedBrightness > 0);
 
           // Store the initial values for reverting later
           setInitialColor(savedColor);
           setInitialBrightness(savedBrightness);
+          setIsSaved(savedValue === 'SAVED');
+        } else {
+          // Set default values if no saved settings are available
+          setSelectedColor('#00ff00');
+          setBrightness(1);
+          setIsLedOn(true);
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
+        // Set default values in case of an error
+        setSelectedColor('#00ff00');
+        setBrightness(1);
+        setIsLedOn(true);
       }
     };
 
@@ -118,6 +130,7 @@ const ColorPickerComponent = () => {
       message.destinationName = ESP32_MQTT_TOPIC_COLOR;
       mqttClient.send(message);
       console.log(`Color and brightness sent: ${controlMessage}`);
+      setIsLedOn(brightness > 0);
     }
   };
 
@@ -147,6 +160,7 @@ const ColorPickerComponent = () => {
     const defaultBrightness = 1;
     setSelectedColor(defaultColor);
     setBrightness(defaultBrightness);
+    setIsLedOn(true);
     sendColorAndBrightnessToESP32(defaultColor, defaultBrightness);
     saveToAdafruitIO(defaultColor, defaultBrightness);
   };
@@ -164,6 +178,7 @@ const ColorPickerComponent = () => {
               // Revert to the initial values if user chooses to discard changes
               setSelectedColor(initialColor);
               setBrightness(initialBrightness);
+              setIsLedOn(initialBrightness > 0);
               navigation.goBack();
             },
             style: "destructive",
@@ -221,6 +236,7 @@ const ColorPickerComponent = () => {
                 onValueChange={(value) => {
                   setBrightness(value);
                   sendColorAndBrightnessToESP32(selectedColor, value);
+                  setIsLedOn(value > 0);
                   setIsSaved(false); // Mark as unsaved when brightness is changed
                 }}
                 minimumTrackTintColor="#FFFFFF"
