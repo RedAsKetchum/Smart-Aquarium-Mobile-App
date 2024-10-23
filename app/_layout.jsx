@@ -51,6 +51,9 @@ const RootLayout = () => {
       {/* History Page */}
       <Stack.Screen name="history" options={{ headerShown: false }} />
 
+      {/* Sensor Settings Page */}
+      <Stack.Screen name="sensorSettings" options={{ headerShown: false }} />
+
     </Stack>
   );
 };
