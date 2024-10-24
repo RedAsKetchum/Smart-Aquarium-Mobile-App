@@ -5,11 +5,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useLocalSearchParams, router } from 'expo-router'; // Get search params for time
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import { MaterialIcons } from '@expo/vector-icons'; // Using Expo for icons
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function RepeatDay() {
+    const navigation = useNavigation(); // Use useNavigation hook
     const { selectedTime, selectedDays: selectedDaysParam } = useLocalSearchParams();  // Get selected time and days
     const initialSelectedDays = selectedDaysParam ? selectedDaysParam.split(',') : [];
-
     const [selectedDays, setSelectedDays] = useState(initialSelectedDays);
 
     const days = [
@@ -39,7 +41,7 @@ export default function RepeatDay() {
                 {/* Header with Cancel and Save */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     <TouchableOpacity  
-                        onPress={() => router.push('/addSchedule')} 
+                        onPress={() => navigation.goBack()} 
                         style={{ padding: 10, marginLeft: 10 }}>
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                     </TouchableOpacity>

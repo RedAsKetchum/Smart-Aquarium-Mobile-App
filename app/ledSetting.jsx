@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
 import WheelColorPicker from 'react-native-wheel-color-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { Client, Message } from 'paho-mqtt';
 import { styles } from './AppStyles';  
+import { useNavigation } from '@react-navigation/native';
 
 const AIO_USERNAME = 'RedAsKetchum';  // Adafruit IO username
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Adafruit IO key
@@ -15,10 +16,29 @@ const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/l
 const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define Adafruit IO topic for color
 
 const ColorPickerComponent = () => {
+  const navigation = useNavigation(); // Use useNavigation hook
   const router = useRouter();
   const [selectedColor, setSelectedColor] = useState('#00ff00');  // Default to green (RGB: 0, 255, 0)
   const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
   const [mqttClient, setMqttClient] = useState(null);
+  const [initialColor, setInitialColor] = useState('#00ff00'); // Store the initially fetched color
+  const [initialBrightness, setInitialBrightness] = useState(1); // Store the initially fetched brightness
+  const [isSaved, setIsSaved] = useState(true); // Track if the user has saved
+  const [isLedOn, setIsLedOn] = useState(true); // Track if the LED is on or off
+
+  // Function to convert HEX to RGB
+  const hexToRgb = (hex) => {
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = (bigint & 255);
+    return { r, g, b };
+  };
+
+  // Function to convert RGB to HEX
+  const rgbToHex = (r, g, b) => {
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
 
   useEffect(() => {
     const fetchSavedSettings = async () => {
@@ -31,17 +51,32 @@ const ColorPickerComponent = () => {
         });
         const data = await response.json();
         if (data.length > 0) {
-          const [r, g, b, brightnessValue] = data[0].value.split(',');  
-          setSelectedColor(rgbToHex(Number(r), Number(g), Number(b)));
-          setBrightness(Number(brightnessValue));
-          sendColorAndBrightnessToESP32(selectedColor, Number(brightnessValue));
+          const [r, g, b, brightnessValue, savedValue] = data[0].value.split(',');
+          const savedColor = rgbToHex(Number(r), Number(g), Number(b));
+          const savedBrightness = Number(brightnessValue);
+          
+          setSelectedColor(savedColor);
+          setBrightness(savedBrightness);
+          setIsLedOn(savedBrightness > 0);
+
+          // Store the initial values for reverting later
+          setInitialColor(savedColor);
+          setInitialBrightness(savedBrightness);
+          setIsSaved(savedValue === 'SAVED');
+        } else {
+          // Set default values if no saved settings are available
+          setSelectedColor('#00ff00');
+          setBrightness(1);
+          setIsLedOn(true);
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
+        // Set default values in case of an error
+        setSelectedColor('#00ff00');
+        setBrightness(1);
+        setIsLedOn(true);
       }
     };
-
-    fetchSavedSettings();
 
     const client = new Client('wss://io.adafruit.com/mqtt', `mqtt-client-${Date.now()}`);
     client.onConnectionLost = (responseObject) => {
@@ -54,19 +89,26 @@ const ColorPickerComponent = () => {
       console.log('Message arrived:', message.payloadString);
     };
 
-    client.connect({
-      useSSL: true,
-      userName: AIO_USERNAME,
-      password: AIO_KEY,
-      onSuccess: () => {
-        console.log('Connected to Adafruit IO via MQTT');
-        setMqttClient(client);
-        sendColorAndBrightnessToESP32('#00ff00', 1);
-      },
-      onFailure: (err) => {
-        console.error('MQTT connection error:', err.message || err);
-      },
-    });
+    const initializeMqtt = () => {
+      client.connect({
+        useSSL: true,
+        userName: AIO_USERNAME,
+        password: AIO_KEY,
+        onSuccess: async () => {
+          console.log('Connected to Adafruit IO via MQTT');
+          setMqttClient(client);
+
+          // Fetch saved settings before sending default values
+          await fetchSavedSettings();
+        },
+        onFailure: (err) => {
+          console.error('MQTT connection error:', err.message || err);
+        },
+      });
+    };
+
+    // Initialize MQTT and fetch settings in order
+    initializeMqtt();
 
     return () => {
       if (client.isConnected()) {
@@ -88,18 +130,9 @@ const ColorPickerComponent = () => {
       message.destinationName = ESP32_MQTT_TOPIC_COLOR;
       mqttClient.send(message);
       console.log(`Color and brightness sent: ${controlMessage}`);
+      setIsLedOn(brightness > 0);
     }
   };
-
-  const hexToRgb = (hex) => {
-    const bigint = parseInt(hex.slice(1), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = (bigint & 255);
-    return { r, g, b };
-  };
-
-  const rgbToHex = (r, g, b) => `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 
   const saveToAdafruitIO = async (color, brightness) => {
     const rgb = hexToRgb(color);
@@ -114,18 +147,47 @@ const ColorPickerComponent = () => {
         body: JSON.stringify({ value: controlMessage }),
       });
       console.log(`Color and brightness saved to Adafruit IO with indicator: ${controlMessage}`);
+
+      // Mark the settings as saved
+      setIsSaved(true);
     } catch (error) {
       console.error("Error saving to Adafruit IO: ", error.message || error);
     }
-};
+  };
 
   const resetToDefault = () => {
     const defaultColor = '#00ff00';  
     const defaultBrightness = 1;
     setSelectedColor(defaultColor);
     setBrightness(defaultBrightness);
+    setIsLedOn(true);
     sendColorAndBrightnessToESP32(defaultColor, defaultBrightness);
     saveToAdafruitIO(defaultColor, defaultBrightness);
+  };
+
+  const handleBackPress = () => {
+    if (!isSaved) {
+      Alert.alert(
+        "Unsaved Changes",
+        "You have unsaved changes. Do you want to discard them?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Discard",
+            onPress: () => {
+              // Revert to the initial values if user chooses to discard changes
+              setSelectedColor(initialColor);
+              setBrightness(initialBrightness);
+              setIsLedOn(initialBrightness > 0);
+              navigation.goBack();
+            },
+            style: "destructive",
+          },
+        ]
+      );
+    } else {
+      navigation.goBack();
+    }
   };
 
   return (
@@ -133,7 +195,7 @@ const ColorPickerComponent = () => {
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
-          <TouchableOpacity onPress={() => router.push('/settings')} style={{padding: 10, marginLeft: 10}}>
+          <TouchableOpacity onPress={handleBackPress} style={{padding: 10, marginLeft: 10}}>
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{padding: 10, marginRight: 18}}>
@@ -149,6 +211,7 @@ const ColorPickerComponent = () => {
             onColorChange={color => {
               setSelectedColor(color);
               sendColorAndBrightnessToESP32(color, brightness);
+              setIsSaved(false); // Mark as unsaved when color is changed
             }}
             style={{width: 380, height: 400}}
             sliderSize={35}
@@ -159,6 +222,7 @@ const ColorPickerComponent = () => {
               const newBrightness = Math.max(0, brightness - 0.1);
               setBrightness(newBrightness);
               sendColorAndBrightnessToESP32(selectedColor, newBrightness);
+              setIsSaved(false); // Mark as unsaved when brightness is changed
             }}>
               <Icon name="sunny" size={30} color="#000" />
             </TouchableOpacity>
@@ -172,6 +236,8 @@ const ColorPickerComponent = () => {
                 onValueChange={(value) => {
                   setBrightness(value);
                   sendColorAndBrightnessToESP32(selectedColor, value);
+                  setIsLedOn(value > 0);
+                  setIsSaved(false); // Mark as unsaved when brightness is changed
                 }}
                 minimumTrackTintColor="#FFFFFF"
                 maximumTrackTintColor="#FFFFFF"
@@ -181,6 +247,7 @@ const ColorPickerComponent = () => {
               const newBrightness = Math.min(1, brightness + 0.1);
               setBrightness(newBrightness);
               sendColorAndBrightnessToESP32(selectedColor, newBrightness);
+              setIsSaved(false); // Mark as unsaved when brightness is changed
             }}>
               <Icon name="sunny" size={40} color="#000" />
             </TouchableOpacity>
