@@ -54,6 +54,9 @@ const RootLayout = () => {
       {/* Sensor Settings Page */}
       <Stack.Screen name="sensorSettings" options={{ headerShown: false }} />
 
+      {/* Edit Schedule Page */}
+      <Stack.Screen name="editSchedule" options={{ headerShown: false }} />
+
     </Stack>
   );
 };

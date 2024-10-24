@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter, useLocalSearchParams } from 'expo-router';  // Use router and useLocalSearchParams
@@ -9,7 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function AddSchedule() {
     const router = useRouter();  // Use the router to handle navigation
-    const { selectedDays, selectedTime } = useLocalSearchParams();  // Get selectedTime and selectedDays passed from RepeatDay
+    const { selectedDays, selectedTime, isEditMode = false } = useLocalSearchParams();  // Get selectedTime and selectedDays passed from RepeatDay
 
     const [date, setDate] = useState(new Date());
     const [selectedDaysState, setSelectedDaysState] = useState(selectedDays ? selectedDays.split(',') : []);
@@ -52,6 +52,8 @@ export default function AddSchedule() {
             params: { newSchedule },
         });
     };
+
+    
 
     return (
     <GestureHandlerRootView style={styles.container}>  
@@ -103,7 +105,8 @@ export default function AddSchedule() {
                             pathname: './repeatDay', 
                             params: { 
                                 selectedDays: selectedDaysState.join(','), 
-                                selectedTime: date.toISOString()  // Pass the selected time as a parameter
+                                selectedTime: date.toISOString(),
+                                isEditMode,
                             }})}  
                         style={{flexDirection: 'row',padding: 10}}>
                         <Text style={{ fontSize: 17, color: 'purple', marginRight: 10}}>{formatSelectedDays()}</Text>

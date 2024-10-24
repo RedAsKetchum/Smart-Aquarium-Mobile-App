@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useLocalSearchParams, router } from 'expo-router'; // Get search params for time
-import { styles } from './AppStyles';  // Importing the styles from the new file
-import { MaterialIcons } from '@expo/vector-icons'; // Using Expo for icons
+import { useLocalSearchParams, router } from 'expo-router'; 
+import { styles } from './AppStyles';  
+import { MaterialIcons } from '@expo/vector-icons'; 
 import { useNavigation } from '@react-navigation/native';
 
-
 export default function RepeatDay() {
-    const navigation = useNavigation(); // Use useNavigation hook
-    const { selectedTime, selectedDays: selectedDaysParam } = useLocalSearchParams();  // Get selected time and days
+    const navigation = useNavigation(); 
+    const { selectedTime, selectedDays: selectedDaysParam, id, isEditMode } = useLocalSearchParams();  // `isEditMode` is coming from navigation params
     const initialSelectedDays = selectedDaysParam ? selectedDaysParam.split(',') : [];
     const [selectedDays, setSelectedDays] = useState(initialSelectedDays);
+
+     // Log the parameters being passed
+     useEffect(() => {
+        console.log('Parameters passed to RepeatDay:', {
+            selectedTime,
+            selectedDays: selectedDaysParam,
+            id,
+            isEditMode
+        });
+    }, []);
 
     const days = [
         { id: 'Su', label: 'Every Sunday' },
@@ -33,6 +42,35 @@ export default function RepeatDay() {
       );
     };
 
+    const handleSave = () => {
+        // Convert isEditMode to a boolean
+        const editMode = isEditMode === 'true' || isEditMode === true;
+    
+        if (editMode) {
+            // Navigate back to editSchedule with selected days
+            router.push({
+                pathname: '/editSchedule', 
+                params: { 
+                    selectedDays: selectedDays.join(','), 
+                    selectedTime,
+                    id,  
+                    isEditMode: true,  // Ensure we're in edit mode
+                }
+            });
+        } else {
+            // Navigate back to addSchedule with selected days
+            router.push({
+                pathname: '/addSchedule', 
+                params: { 
+                    selectedDays: selectedDays.join(','), 
+                    selectedTime,
+                    isEditMode: false,  // Ensure we're in add mode
+                }
+            });
+        }
+    };
+    
+
     return (
         <GestureHandlerRootView style={styles.container}>  
             <SafeAreaView className="bg-primary h-full">
@@ -41,19 +79,13 @@ export default function RepeatDay() {
                 {/* Header with Cancel and Save */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
                     <TouchableOpacity  
-                        onPress={() => navigation.goBack()} 
+                        onPress={() => navigation.goBack()}  // Go back to the previous screen
                         style={{ padding: 10, marginLeft: 10 }}>
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                     </TouchableOpacity>
                     <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>Repeat Days</Text>
                     <TouchableOpacity  
-                        onPress={() => router.push({
-                            pathname: '/addSchedule',
-                            params: { 
-                                selectedDays: selectedDays.join(','), 
-                                selectedTime  // Pass the time back to AddSchedule
-                            }
-                        })} 
+                        onPress={handleSave}  // Call handleSave when clicking Save
                         style={{ padding: 10, marginRight: 10 }}>
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Save</Text>
                     </TouchableOpacity>

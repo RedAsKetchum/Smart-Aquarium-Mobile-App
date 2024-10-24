@@ -233,27 +233,38 @@ export default function SchedulePage() {
                 <ScrollView contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}>
                     <View style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: 10, borderRadius: 15, marginTop: 15 }}>
                         {/* Render all saved schedules */}
-                        {schedules.map((schedule, index) => (
-                            <View key={`${schedule.time}-${schedule.days}-${schedule.id}`} style={{ marginBottom: 20 }}>
+                        { schedules.map((schedule, index) => (
+                            <TouchableOpacity
+                                key={schedule.id}
+                                style={{ marginBottom: 20 }}
+                                onPress={() => router.push({
+                                    pathname: '/editSchedule',  // Edit existing schedule
+                                    params: { 
+                                        id: schedule.id, 
+                                        selectedTime: schedule.time, 
+                                        selectedDays: schedule.days,  
+                                        isEditMode: true, 
+                                    }
+                                })}
+                            >
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderRadius: 15 }}>
-                                    {/* Toggle Button for individual schedules */}
                                     <Switch
                                         trackColor={{ false: "#767577", true: "#4527A0" }}
                                         thumbColor={schedule.enabled ? "#f4f3f4" : "#f4f3f4"}
-                                        onValueChange={() => toggleSwitch(index)}  // Toggle individual schedule by index
+                                        onValueChange={() => toggleSwitch(index)}  // Keep the toggle switch functional
                                         value={schedule.enabled}
                                         style={{ flex: 0.4 }}
                                     />
-                                    {/* Time */}
-                                    <Text style={{ fontSize: 20, color: 'purple', flex: 1, fontWeight: 'bold' }}>{schedule.time}</Text>
-                                    {/* Days */}
+                                    <Text style={{ fontSize: 20, color: 'purple', flex: 1, fontWeight: 'bold' }}>
+                                        {schedule.time}  {/* This time will now be editable */}
+                                    </Text>
                                     <Text style={{ fontSize: 14, color: 'white', flex: 1, textAlign: 'right' }}>
                                         {schedule.days ? `every ${schedule.days}` : ''}
                                     </Text>
                                 </View>
                                 <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 2 }} />
-                            </View>
-                        ))}
+                            </TouchableOpacity>
+                        )) }
                     </View>
                     <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]} 
                     onPress={deleteAllSchedules}>
