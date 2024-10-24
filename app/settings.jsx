@@ -76,7 +76,7 @@ const settings = () => {
           </Text>
   
           {/* Sensor Settings */}
-          <TouchableOpacity style={styles.buttons} onPress={() => console.log("Sensor Settings Pressed")}>
+          <TouchableOpacity style={styles.buttons} onPress={() => router.push('/sensorSettings')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Sensor Settings
             </Text>
