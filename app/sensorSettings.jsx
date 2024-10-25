@@ -5,27 +5,29 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import Slider from '@react-native-community/slider'; // Import the slider component
+import Slider from '@react-native-community/slider';
 
 export default function DispenserSettings() {
   // Limits
-  const [temperatureLimit, setTemperatureLimit] = useState(1);
+  const [temperatureMin, setTemperatureLimit] = useState(1);
   const [temperatureMax, setTemperatureMax] = useState(99);
-  const [turbidityLimit, setTurbidityLimit] = useState(1);
+
+  const [turbidityMin, setTurbidityLimit] = useState(1);
   const [turbidityMax, setTurbidityMax] = useState(99);
-  const [pHLimit, setPHLimit] = useState(1);
-  const [pHMax, setPHMax] = useState(14);
+
+  const [pHMin, setPHLimit] = useState(1);
+  const [pHMax, setPHMax] = useState(14); // pH should generally be between 0-14
 
   const navigation = useNavigation();
 
   useEffect(() => {
     const loadValues = async () => {
       try {
-        const savedTemperatureLimit = await AsyncStorage.getItem('temperatureLimit');
+        const savedTemperatureLimit = await AsyncStorage.getItem('temperatureMin');
         const savedTemperatureMax = await AsyncStorage.getItem('temperatureMax');
-        const savedTurbidityLimit = await AsyncStorage.getItem('turbidityLimit');
+        const savedTurbidityLimit = await AsyncStorage.getItem('turbidityMin');
         const savedTurbidityMax = await AsyncStorage.getItem('turbidityMax');
-        const savedPHLimit = await AsyncStorage.getItem('pHLimit');
+        const savedPHLimit = await AsyncStorage.getItem('pHMin');
         const savedPHMax = await AsyncStorage.getItem('pHMax');
 
         if (savedTemperatureLimit !== null) {
@@ -56,11 +58,11 @@ export default function DispenserSettings() {
 
   const saveValues = async () => {
     try {
-      await AsyncStorage.setItem('temperatureLimit', temperatureLimit.toString());
+      await AsyncStorage.setItem('temperatureMin', temperatureMin.toString());
       await AsyncStorage.setItem('temperatureMax', temperatureMax.toString());
-      await AsyncStorage.setItem('turbidityLimit', turbidityLimit.toString());
+      await AsyncStorage.setItem('turbidityMin', turbidityMin.toString());
       await AsyncStorage.setItem('turbidityMax', turbidityMax.toString());
-      await AsyncStorage.setItem('pHLimit', pHLimit.toString());
+      await AsyncStorage.setItem('pHMin', pHMin.toString());
       await AsyncStorage.setItem('pHMax', pHMax.toString());
     } catch (error) {
       console.log('Error saving values', error);
@@ -90,21 +92,21 @@ export default function DispenserSettings() {
           <View className="mt-5 px-5">
             <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
               <Text className="text-2xl font-bold mb-2 text-white">Temperature Limit:</Text>
-              <Text className="text-xl text-white mb-2">Min: {temperatureLimit}</Text>
+              <Text className="text-xl text-white mb-2">Min: {temperatureMin}</Text>
               <Slider
-                minimumValue={1}
-                maximumValue={temperatureMax}
+                minimumValue={0}
+                maximumValue={100} // Independent max value
                 step={1}
-                value={temperatureLimit}
+                value={temperatureMin}//Initialized value set by the useState. Saves the where the slider is at.
                 onValueChange={value => setTemperatureLimit(value)}
-                onSlidingComplete={saveValues} // Save value when sliding ends
+                onSlidingComplete={saveValues} // Saves value when sliding ends
                 minimumTrackTintColor="#FF0000"
                 maximumTrackTintColor="#000000"
               />
               <Text className="text-xl text-white mb-2">Max: {temperatureMax}</Text>
               <Slider
-                minimumValue={1}
-                maximumValue={99}
+                minimumValue={0} // Independent min value
+                maximumValue={100} // Static max value
                 step={1}
                 value={temperatureMax}
                 onValueChange={value => setTemperatureMax(value)}
@@ -117,12 +119,12 @@ export default function DispenserSettings() {
             {/* Turbidity Limit Panel */}
             <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
               <Text className="text-2xl font-bold mb-2 text-white">Turbidity Limit:</Text>
-              <Text className="text-xl text-white mb-2">Min: {turbidityLimit}</Text>
+              <Text className="text-xl text-white mb-2">Min: {turbidityMin}</Text>
               <Slider
-                minimumValue={1}
-                maximumValue={turbidityMax}
+                minimumValue={0}
+                maximumValue={100} // Independent max value
                 step={1}
-                value={turbidityLimit}
+                value={turbidityMin}
                 onValueChange={value => setTurbidityLimit(value)}
                 onSlidingComplete={saveValues}
                 minimumTrackTintColor="#FF0000"
@@ -130,8 +132,8 @@ export default function DispenserSettings() {
               />
               <Text className="text-xl text-white mb-2">Max: {turbidityMax}</Text>
               <Slider
-                minimumValue={turbidityLimit}
-                maximumValue={99}
+                minimumValue={0} // Independent min value
+                maximumValue={100} // Static max value
                 step={1}
                 value={turbidityMax}
                 onValueChange={value => setTurbidityMax(value)}
@@ -144,12 +146,12 @@ export default function DispenserSettings() {
             {/* pH Limit Panel */}
             <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden">
               <Text className="text-2xl font-bold mb-2 text-white">pH Limit:</Text>
-              <Text className="text-xl text-white mb-2">Min: {pHLimit}</Text>
+              <Text className="text-xl text-white mb-2">Min: {pHMin}</Text>
               <Slider
-                minimumValue={1}
-                maximumValue={pHMax}
+                minimumValue={0} // Independent min value
+                maximumValue={14} // Independent max value
                 step={1}
-                value={pHLimit}
+                value={pHMin}
                 onValueChange={value => setPHLimit(value)}
                 onSlidingComplete={saveValues}
                 minimumTrackTintColor="#FF0000"
@@ -157,8 +159,8 @@ export default function DispenserSettings() {
               />
               <Text className="text-xl text-white mb-2">Max: {pHMax}</Text>
               <Slider
-                minimumValue={pHLimit}
-                maximumValue={14}
+                minimumValue={0} // Independent min value
+                maximumValue={14} // Static max value for pH
                 step={1}
                 value={pHMax}
                 onValueChange={value => setPHMax(value)}
