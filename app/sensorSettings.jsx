@@ -67,46 +67,6 @@ export default function DispenserSettings() {
     }
   };
 
-  const resetToDefault = async () => {
-    Alert.alert(
-      "Reset to Default",
-      "Are you sure you want to reset the values to default?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Reset canceled"),
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: async () => {
-            setTemperatureLimit(1);
-            setTemperatureMax(99);
-            setTurbidityLimit(1);
-            setTurbidityMax(99);
-            setPHLimit(1);
-            setPHMax(14);
-
-            try {
-              await AsyncStorage.setItem('temperatureLimit', '1');
-              await AsyncStorage.setItem('temperatureMax', '99');
-              await AsyncStorage.setItem('turbidityLimit', '1');
-              await AsyncStorage.setItem('turbidityMax', '99');
-              await AsyncStorage.setItem('pHLimit', '1');
-              await AsyncStorage.setItem('pHMax', '14');
-              console.log('Values reset to default');
-            } catch (error) {
-              console.log('Error saving default values', error);
-            }
-
-            alert('Values reset to default');
-          },
-        }
-      ],
-      { cancelable: false }
-    );
-  };
-
   return (
     <GestureHandlerRootView className="flex-1">  
       <SafeAreaView className="bg-primary h-full">
@@ -143,7 +103,7 @@ export default function DispenserSettings() {
               />
               <Text className="text-xl text-white mb-2">Max: {temperatureMax}</Text>
               <Slider
-                minimumValue={temperatureLimit}
+                minimumValue={1}
                 maximumValue={99}
                 step={1}
                 value={temperatureMax}
@@ -207,14 +167,6 @@ export default function DispenserSettings() {
                 maximumTrackTintColor="#000000"
               />
             </View>
-
-            {/* Reset to Default Button */}
-            <TouchableOpacity 
-              className="bg-gray-50/40 rounded-full h-16 mt-12 flex items-center justify-center"
-              onPress={resetToDefault}
-            >
-              <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>Reset to Default</Text>
-            </TouchableOpacity>
           </View>
         
         </ImageBackground>
