@@ -14,6 +14,7 @@ import { styles } from './AppStyles'; //imports app styles for components using 
 import { styled } from 'nativewind';
 import axios from 'axios'; //for servo motor control
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Appearance,StyleSheet } from 'react-native';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
@@ -337,25 +338,7 @@ const fetchSensorData = async () => {
           <View style={styles.bottomSheetContent}>
             <BlurView intensity={70} style={styles.blurContainer}>
              {/* Row1 */}
-              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
-                
-                {/* Feeding Button */}
-                {/* <TouchableOpacity
-                  style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
-                  
-                  //onPress={moveServo}
-                  //onPress={() => console.log('Feeding Button pressed')}
-                  onPress={() => {
-                    handleActivateServo();   // Call the function to activate the servo
-                    console.log('Feeding button pressed.');   // Log the button press
-                  }
-                }
-                >
-                  <Image
-                    source={require('../assets/icons/feedingButton.png')}
-                    style={styles.imageButton}  
-                  />
-                </TouchableOpacity> */}
+              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>           
 
                 {/* Feeding Button */}
                 <TouchableOpacity

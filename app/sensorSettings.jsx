@@ -6,14 +6,19 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Slider from '@react-native-community/slider';
+import axios from 'axios';
+
+// ********************* Adafruit IO credentials ***********************/
+const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
+const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
 
 export default function SensorSettings() {
   // Limits
   const [temperatureMin, setTemperatureMin] = useState(1);
-  const [temperatureMax, setTemperatureMax] = useState(99);
+  const [temperatureMax, setTemperatureMax] = useState(100);
 
   const [turbidityMin, setTurbidityMin] = useState(1);
-  const [turbidityMax, setTurbidityMax] = useState(99);
+  const [turbidityMax, setTurbidityMax] = useState(100);
 
   const [pHMin, setPHMin] = useState(1);
   const [pHMax, setPHMax] = useState(14); // pH should generally be between 0-14
@@ -56,17 +61,52 @@ export default function SensorSettings() {
     loadValues();
   }, []);
 
-  const saveValues = async () => {
-    try {
-      await AsyncStorage.setItem('temperatureMin', temperatureMin.toString());
-      await AsyncStorage.setItem('temperatureMax', temperatureMax.toString());
-      await AsyncStorage.setItem('turbidityMin', turbidityMin.toString());
-      await AsyncStorage.setItem('turbidityMax', turbidityMax.toString());
-      await AsyncStorage.setItem('pHMin', pHMin.toString());
-      await AsyncStorage.setItem('pHMax', pHMax.toString());
-    } catch (error) {
-      console.log('Error saving values', error);
-    }
+    const saveValues = async () => {
+      try {
+          // Saving values in AsyncStorage
+          await AsyncStorage.setItem('temperatureMin', temperatureMin.toString());
+          await AsyncStorage.setItem('temperatureMax', temperatureMax.toString());
+          await AsyncStorage.setItem('turbidityMin', turbidityMin.toString());
+          await AsyncStorage.setItem('turbidityMax', turbidityMax.toString());
+          await AsyncStorage.setItem('pHMin', pHMin.toString());
+          await AsyncStorage.setItem('pHMax', pHMax.toString());
+
+          // Create an object to hold all values
+          const sensorData = {
+              temperatureMin,
+              temperatureMax,
+              turbidityMin,
+              turbidityMax,
+              pHMin,
+              pHMax
+          };
+
+          // Publish the sensor data as a JSON string to the sensor-settings feed
+          await publishToAdafruitIO('sensor-settings', sensorData);
+      } catch (error) {
+          console.log('Error saving values', error);
+      }
+  };
+
+    // Helper function to publish data to Adafruit IO
+    const publishToAdafruitIO = async (feedKey, data) => {
+      try {
+          // Convert the data object to a JSON string
+          const jsonData = JSON.stringify(data);
+
+          // Send the entire JSON string as the value
+          await axios.post(
+              `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${feedKey}/data`,
+              { value: jsonData }, // Sending the JSON string as a single value
+              {
+                  headers: { 'X-AIO-Key': AIO_KEY, 'Content-Type': 'application/json' }
+              }
+          );
+
+          console.log(`Sent data to feed ${feedKey}:`, jsonData);
+      } catch (error) {
+          console.log(`Error sending data to feed ${feedKey}:`, error);
+      }
   };
 
   return (
