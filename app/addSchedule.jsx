@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Alert, Modal} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter, useLocalSearchParams } from 'expo-router';  // Use router and useLocalSearchParams
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 export default function AddSchedule() {
     const router = useRouter();  // Use the router to handle navigation
@@ -13,6 +14,9 @@ export default function AddSchedule() {
 
     const [date, setDate] = useState(new Date());
     const [selectedDaysState, setSelectedDaysState] = useState(selectedDays ? selectedDays.split(',') : []);
+    const [isPickerVisible, setPickerVisible] = useState(false);
+    const [selectedDevice, setSelectedDevice] = useState("LED");
+
 
     // Effect to handle updating state when days or time are passed as params
     useEffect(() => {
@@ -43,6 +47,7 @@ export default function AddSchedule() {
         const newSchedule = JSON.stringify({
             time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),  // Format time
             days: selectedDaysState.join(',') || '',  // Join selected days, empty string allowed
+            device: selectedDevice,
         });
     
         console.log('New Schedule:', newSchedule);  // Check the new schedule data before navigating
@@ -117,6 +122,41 @@ export default function AddSchedule() {
                         />
                     </TouchableOpacity>
                 </View>
+                <View style={{ height: 1, backgroundColor: 'grey', marginTop: 10, marginHorizontal: 10, fontWeight: 'bold'}}></View>
+                {/* Select Device */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 17,  color: 'white', marginLeft: 10}}>Device</Text>
+                    <TouchableOpacity
+                        onPress={() => setPickerVisible(true)}  
+                        style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
+                    >
+                        <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{selectedDevice}</Text>
+                        <Icon name="chevron-forward-outline" size={22} color="white" />
+                    </TouchableOpacity>
+                </View>
+                <Modal
+                    visible={isPickerVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setPickerVisible(false)}
+                >
+                    <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                        <View style={{ backgroundColor: 'white', margin: 20, borderRadius: 10, padding: 20 }}>
+                            <Text style={{ fontSize: 18, marginBottom: 10 }}>Choose Device</Text>
+                            <Picker
+                                selectedValue={selectedDevice}
+                                onValueChange={(itemValue) => setSelectedDevice(itemValue)}
+                                style={{ width: '100%' }}
+                            >
+                                <Picker.Item label="LED" value="LED" />
+                                <Picker.Item label="Feeder" value="Feeder" />
+                            </Picker>
+                            <TouchableOpacity onPress={() => setPickerVisible(false)}>
+                                <Text style={{ color: 'blue', marginTop: 10, textAlign: 'right' }}>Done</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </ScrollView>
         </SafeAreaView>
