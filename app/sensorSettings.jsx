@@ -142,7 +142,7 @@ export default function SensorSettings() {
           <View className="mt-5 px-5">
             <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
               <Text className="text-2xl font-bold mb-2 text-white">Temperature Limit:</Text>
-              <Text className="text-xl text-white mb-2">Min: {temperatureMin}</Text>
+              <Text className="text-xl text-white mb-2">Min: {temperatureMin} °F</Text>
               <Slider
                 minimumValue={0} 
                 maximumValue={100} 
@@ -152,7 +152,7 @@ export default function SensorSettings() {
                 minimumTrackTintColor="#9933ff"
                 maximumTrackTintColor="#000000"
               />
-              <Text className="text-xl text-white mb-2">Max: {temperatureMax}</Text>
+              <Text className="text-xl text-white mb-2">Max: {temperatureMax} °F</Text>
               <Slider
                 minimumValue={0} 
                 maximumValue={100} 
@@ -190,7 +190,7 @@ export default function SensorSettings() {
 
             <View className="mt-5 p-5 pb-14 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
               <Text className="text-2xl font-bold mb-2 text-white">Turbidity Limit:</Text>
-              <Text className="text-xl text-white mb-2">Max: {turbidityMax}</Text>
+              <Text className="text-xl text-white mb-2">Max: {turbidityMax} (NTU)</Text>
               <Slider
                 minimumValue={0} 
                 maximumValue={100} 
