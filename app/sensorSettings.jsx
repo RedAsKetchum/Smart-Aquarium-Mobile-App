@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text,TouchableOpacity, ImageBackground, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -61,63 +61,64 @@ export default function SensorSettings() {
     loadValues();
   }, []);
 
-    const saveValues = async () => {
-      try {
-          // Saving values in AsyncStorage
-          await AsyncStorage.setItem('temperatureMin', temperatureMin.toString());
-          await AsyncStorage.setItem('temperatureMax', temperatureMax.toString());
-          await AsyncStorage.setItem('turbidityMin', turbidityMin.toString());
-          await AsyncStorage.setItem('turbidityMax', turbidityMax.toString());
-          await AsyncStorage.setItem('pHMin', pHMin.toString());
-          await AsyncStorage.setItem('pHMax', pHMax.toString());
-
-          // Create an object to hold all values
-          const sensorData = {
-              temperatureMin,
-              temperatureMax,
-              turbidityMin,
-              turbidityMax,
-              pHMin,
-              pHMax
-          };
-
-          // Publish the sensor data as a JSON string to the sensor-settings feed
-          await publishToAdafruitIO('sensor-settings', sensorData);
-      } catch (error) {
-          console.log('Error saving values', error);
-      }
+  const saveValues = async () => {
+    try {
+      // Saving values in AsyncStorage
+      await AsyncStorage.setItem('temperatureMin', temperatureMin.toString());
+      await AsyncStorage.setItem('temperatureMax', temperatureMax.toString());
+      await AsyncStorage.setItem('turbidityMin', turbidityMin.toString());
+      await AsyncStorage.setItem('turbidityMax', turbidityMax.toString());
+      await AsyncStorage.setItem('pHMin', pHMin.toString());
+      await AsyncStorage.setItem('pHMax', pHMax.toString());
+  
+      // Create an object to hold all values
+      const sensorData = {
+        temperatureMin,
+        temperatureMax,
+        turbidityMin,
+        turbidityMax,
+        pHMin,
+        pHMax
+      };
+  
+      // Publish the sensor data as a JSON string to the sensor-settings feed
+      await publishToAdafruitIO('sensor-settings', sensorData);
+  
+      // Show a confirmation popup
+      Alert.alert(
+        "Success",
+        "Sensor settings have been saved.",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.log('Error saving values', error);
+    }
   };
 
-    // Helper function to publish data to Adafruit IO
-    const publishToAdafruitIO = async (feedKey, data) => {
-      try {
-          // Convert the data object to a JSON string
-          const jsonData = JSON.stringify(data);
-
-          // Send the entire JSON string as the value
-          await axios.post(
-              `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${feedKey}/data`,
-              { value: jsonData }, // Sending the JSON string as a single value
-              {
-                  headers: { 'X-AIO-Key': AIO_KEY, 'Content-Type': 'application/json' }
-              }
-          );
-
-          console.log(`Sent data to feed ${feedKey}:`, jsonData);
-      } catch (error) {
-          console.log(`Error sending data to feed ${feedKey}:`, error);
-      }
+  // Helper function to publish data to Adafruit IO
+  const publishToAdafruitIO = async (feedKey, data) => {
+    try {
+      const jsonData = JSON.stringify(data);
+      await axios.post(
+        `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${feedKey}/data`,
+        { value: jsonData },
+        { headers: { 'X-AIO-Key': AIO_KEY, 'Content-Type': 'application/json' } }
+      );
+      console.log(`Sent data to feed ${feedKey}:`, jsonData);
+    } catch (error) {
+      console.log(`Error sending data to feed ${feedKey}:`, error);
+    }
   };
 
   return (
-    <GestureHandlerRootView className="flex-1">  
+    <GestureHandlerRootView className="flex-1">
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground 
           source={require('../assets/images/gradient.png')} 
           className="flex-1 absolute top-0 left-0 right-0 bottom-0" 
           resizeMode="cover"
         >
-          <View className="flex-row items-center justify-center px-4 mt-20 relative">
+         <View className="flex-row items-center justify-center px-4 mt-20">
             <TouchableOpacity 
               onPress={() => navigation.goBack()}
               className="absolute left-0 p-2"
@@ -125,65 +126,44 @@ export default function SensorSettings() {
               <Icon name="arrow-back" size={35} color="white" />
             </TouchableOpacity>
 
-            <Text className="text-2xl font-bold mb-2 text-white text-center">Sensor Settings</Text>
+            <Text className="text-2xl font-bold mb-2 text-white text-center">
+              Sensor Settings
+            </Text>
+
+            <TouchableOpacity 
+              onPress={saveValues} 
+              className="absolute right-0 p-2"
+              style={{ marginRight: 18 }}
+            >
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Save</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Temperature Limit Panel */}
           <View className="mt-5 px-5">
             <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
               <Text className="text-2xl font-bold mb-2 text-white">Temperature Limit:</Text>
               <Text className="text-xl text-white mb-2">Min: {temperatureMin}</Text>
               <Slider
-                minimumValue={0} //min value of the slider
-                maximumValue={100} //max value of the slider
-                step={1}           //increments of 1
-                value={temperatureMin}//Initialized value set by the useState function. Saves the value set by where the slider is currently at.
-                onValueChange={value => setTemperatureMin(value)} //sends the slider value to tempetureMin
-                onSlidingComplete={saveValues} // Saves value when sliding ends
+                minimumValue={0} 
+                maximumValue={100} 
+                step={1}
+                value={temperatureMin}
+                onValueChange={value => setTemperatureMin(value)}
                 minimumTrackTintColor="#9933ff"
                 maximumTrackTintColor="#000000"
               />
-              <Text className="text-xl text-white mb-2">Max: {temperatureMax}</Text>
+              <Text className="text-xl text-white mb-2">Above Max: {temperatureMax}</Text>
               <Slider
                 minimumValue={0} 
                 maximumValue={100} 
                 step={1}
                 value={temperatureMax}
                 onValueChange={value => setTemperatureMax(value)}
-                onSlidingComplete={saveValues}
                 minimumTrackTintColor="#9933ff"
                 maximumTrackTintColor="#000000"
               />
             </View>
 
-            {/* Turbidity Limit Panel */}
-            <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
-              <Text className="text-2xl font-bold mb-2 text-white">Turbidity Limit:</Text>
-              <Text className="text-xl text-white mb-2">Min: {turbidityMin}</Text>
-              <Slider
-                minimumValue={0}
-                maximumValue={100} 
-                step={1}
-                value={turbidityMin}
-                onValueChange={value => setTurbidityMin(value)}
-                onSlidingComplete={saveValues}
-                minimumTrackTintColor="#1a53ff"
-                maximumTrackTintColor="#000000"
-              />
-              <Text className="text-xl text-white mb-2">Max: {turbidityMax}</Text>
-              <Slider
-                minimumValue={0} 
-                maximumValue={100} 
-                step={1}
-                value={turbidityMax}
-                onValueChange={value => setTurbidityMax(value)}
-                onSlidingComplete={saveValues}
-                minimumTrackTintColor="#1a53ff"
-                maximumTrackTintColor="#000000"
-              />
-            </View>
-
-            {/* pH Limit Panel */}
             <View className="p-5 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden">
               <Text className="text-2xl font-bold mb-2 text-white">pH Limit:</Text>
               <Text className="text-xl text-white mb-2">Min: {pHMin}</Text>
@@ -193,7 +173,6 @@ export default function SensorSettings() {
                 step={1}
                 value={pHMin}
                 onValueChange={value => setPHMin(value)}
-                onSlidingComplete={saveValues}
                 minimumTrackTintColor="#FF0000"
                 maximumTrackTintColor="#000000"
               />
@@ -204,15 +183,28 @@ export default function SensorSettings() {
                 step={1}
                 value={pHMax}
                 onValueChange={value => setPHMax(value)}
-                onSlidingComplete={saveValues}
                 minimumTrackTintColor="#FF0000"
                 maximumTrackTintColor="#000000"
               />
             </View>
+
+            <View className="mt-5 p-5 pb-14 bg-gray-50/40 bg-opacity-80 rounded-lg overflow-hidden mb-5">
+              <Text className="text-2xl font-bold mb-2 text-white">Turbidity Limit:</Text>
+              <Text className="text-xl text-white mb-2">Max: {turbidityMax}</Text>
+              <Slider
+                minimumValue={0} 
+                maximumValue={100} 
+                step={1}
+                value={turbidityMax}
+                onValueChange={value => setTurbidityMax(value)}
+                minimumTrackTintColor="#1a53ff"
+                maximumTrackTintColor="#000000"
+              />
+            </View>
           </View>
-        
         </ImageBackground>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
 }
+
