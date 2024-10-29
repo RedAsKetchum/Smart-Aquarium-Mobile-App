@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, View, ImageBackground, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter, useLocalSearchParams } from 'expo-router';  // Use router and useLocalSearchParams
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import axios from 'axios';  // Assuming you're using Axios to update the schedule
+import axios from 'axios'; 
+import { Picker } from '@react-native-picker/picker';
 
 // Adafruit IO Configuration
 const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  // Replace with your Adafruit IO username
@@ -19,24 +20,33 @@ export default function EditSchedule() {
 
     const [date, setDate] = useState(new Date());
     const [selectedDaysState, setSelectedDaysState] = useState(selectedDays ? selectedDays.split(',') : []);
+    const [isPickerVisible, setPickerVisible] = useState(false);
+    const [selectedDevice, setSelectedDevice] = useState("LED");
 
-    // Populate state when in edit mode
     useEffect(() => {
-        if (isEditMode && selectedDays) {
-            setSelectedDaysState(selectedDays.split(','));
-        }
+        if (isEditMode) {
+            
+            if (selectedDays) {
+                setSelectedDaysState(selectedDays.split(','));
+            }
+    
+            if (selectedTime) {
+                const timeParts = selectedTime.split(':');
+                if (timeParts.length === 2) {
+                    const [hours, minutes] = timeParts;
+                    const restoredDate = new Date();
+                    restoredDate.setHours(parseInt(hours));
+                    restoredDate.setMinutes(parseInt(minutes));
+                    setDate(restoredDate);
+                }
+            }
 
-        if (isEditMode && selectedTime) {
-            const timeParts = selectedTime.split(':');
-            if (timeParts.length === 2) {
-                const [hours, minutes] = timeParts;
-                const restoredDate = new Date();
-                restoredDate.setHours(parseInt(hours));
-                restoredDate.setMinutes(parseInt(minutes));
-                setDate(restoredDate);  // Restore the selected time
+            if (selectedDevice) {
+                setSelectedDevice(selectedDevice);
             }
         }
-    }, [isEditMode, selectedDays, selectedTime]);
+    }, [isEditMode, selectedDays, selectedTime, selectedDevice]);
+    
 
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -53,11 +63,12 @@ export default function EditSchedule() {
             time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             days: selectedDaysState.join(','),  // Send updated days as a string
             enabled: true,  // Enable by default
-            executed: false  // Set executed to false initially
+            executed: false,  // Set executed to false initially
+            device: selectedDevice  // Include selected device type
         };
     
-        // If `isEditMode` is true, we are editing an existing schedule (use PUT)
         if (isEditMode) {
+            // Edit existing schedule
             if (!id) {
                 Alert.alert("Error", "No schedule ID provided for editing.");
                 return;
@@ -75,13 +86,13 @@ export default function EditSchedule() {
                 });
     
                 console.log("Schedule updated on Adafruit IO:", response.data);
-                router.push('/schedulePage');  // Navigate back to the schedule page
+                router.push('/schedulePage');
             } catch (error) {
                 console.error('Error updating schedule:', error);
                 Alert.alert('Error', 'Failed to update schedule on Adafruit IO.');
             }
         } else {
-            // If not in edit mode, we are adding a new schedule (use POST)
+            // Add a new schedule
             const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`;
     
             try {
@@ -94,7 +105,7 @@ export default function EditSchedule() {
                 });
     
                 console.log("New schedule added to Adafruit IO:", response.data);
-                router.push('/schedulePage');  // Navigate back to the schedule page
+                router.push('/schedulePage');
             } catch (error) {
                 console.error('Error adding new schedule:', error);
                 Alert.alert('Error', 'Failed to add new schedule to Adafruit IO.');
@@ -102,7 +113,6 @@ export default function EditSchedule() {
         }
     };
     
-
     const deleteSchedule = async () => {
         if (!id) {
             Alert.alert("Error", "No schedule ID provided.");
@@ -194,6 +204,40 @@ export default function EditSchedule() {
                                     />
                                 </TouchableOpacity>
                         </View>
+                        <View style={{ height: 1, backgroundColor: 'grey', marginTop: 10, marginHorizontal: 10, fontWeight: 'bold'}}></View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 17,  color: 'white', marginLeft: 10}}>Device</Text>
+                    <TouchableOpacity
+                        onPress={() => setPickerVisible(true)}  
+                        style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
+                    >
+                        <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{selectedDevice}</Text>
+                        <Icon name="chevron-forward-outline" size={22} color="white" />
+                    </TouchableOpacity>
+                </View>
+                <Modal
+                    visible={isPickerVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setPickerVisible(false)}
+                >
+                    <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                        <View style={{ backgroundColor: 'white', margin: 20, borderRadius: 10, padding: 20 }}>
+                            <Text style={{ fontSize: 18, marginBottom: 10 }}>Choose Device</Text>
+                            <Picker
+                                selectedValue={selectedDevice}
+                                onValueChange={(itemValue) => setSelectedDevice(itemValue)}
+                                style={{ width: '100%' }}
+                            >
+                                <Picker.Item label="LED" value="LED" />
+                                <Picker.Item label="Feeder" value="Feeder" />
+                            </Picker>
+                            <TouchableOpacity onPress={() => setPickerVisible(false)}>
+                                <Text style={{ color: 'blue', marginTop: 10, textAlign: 'right' }}>Done</Text>
+                            </TouchableOpacity>
+                        </View>
+                        </View>
+                </Modal>
                     </View>
                     <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]} 
                     onPress={deleteSchedule}>
