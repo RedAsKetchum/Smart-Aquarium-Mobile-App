@@ -6,7 +6,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { styles } from './AppStyles';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';  // Axios for Adafruit IO requests
-import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Adafruit IO Configuration
 const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  // Replace with your Adafruit IO username
@@ -14,21 +14,48 @@ const ADAFRUIT_IO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Replace with you
 const ADAFRUIT_IO_FEED = 'feeding-schedule';  // Replace with your Adafruit IO feed
 
 export default function SchedulePage() {
-    const navigation = useNavigation(); // Use useNavigation hook
     const [schedules, setSchedules] = useState([]);  // State for managing schedules
     const [updating, setUpdating] = useState(false); // Throttle updates to Adafruit IO
-    const { newSchedule } = useLocalSearchParams();  // Get new schedule from parameters
+    const { newSchedule, device } = useLocalSearchParams();  // Get new schedule from parameters
+    const feederSchedules = schedules.filter(schedule => schedule.device === 'Feeder');
+    const ledSchedules = schedules.filter(schedule => schedule.device === 'LED');
+    const [scheduledDispenses, setScheduledDispenses] = useState(1); // State for scheduled dispenses
+ 
+    // Function to load scheduled dispenses count from AsyncStorage
+    const loadScheduledDispenses = async () => {
+        try {
+            const savedScheduledValue = await AsyncStorage.getItem('scheduledValue');
+            if (savedScheduledValue !== null) {
+                setScheduledDispenses(parseInt(savedScheduledValue, 10));
+                console.log('Scheduled Dispenses Count:', parseInt(savedScheduledValue, 10));
+            }
+        } catch (error) {
+            console.error('Error loading scheduled dispenses:', error);
+            Alert.alert('Error', 'Failed to load scheduled dispenses.');
+        }
+    };
+
+    useEffect(() => {
+        loadScheduledDispenses(); // Load scheduled dispenses on component mount
+    }, []);
 
     // Function to send a new schedule to Adafruit IO
     const sendScheduleToAdafruitIO = async (schedule) => {
         try {
-            const response = await axios.post(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
-                value: JSON.stringify(schedule)  // Send the schedule data
-            }, {
-                headers: {
-                    'X-AIO-Key': ADAFRUIT_IO_KEY
+            const response = await axios.post(
+                `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`,
+                {
+                    value: JSON.stringify({
+                        ...schedule,
+                        device: schedule.device // Include device type (Feeder or LED)
+                    })
+                },
+                {
+                    headers: {
+                        'X-AIO-Key': ADAFRUIT_IO_KEY
+                    }
                 }
-            });
+            );
 
             console.log("Schedule sent to Adafruit IO:", response.data);
         } catch (error) {
@@ -36,6 +63,7 @@ export default function SchedulePage() {
             Alert.alert('Error', 'Failed to add schedule to Adafruit IO.');
         }
     };
+
 
         // Function to fetch all schedules from Adafruit IO
     const fetchSchedules = async () => {
@@ -86,14 +114,15 @@ export default function SchedulePage() {
         isAddingSchedule = true;
 
         try {
-            const existsLocally = schedules.some(s => s.time === schedule.time && s.days === schedule.days);
+            const existsLocally = schedules.some(s => s.time === schedule.time && s.days === schedule.days && s.device === schedule.device);
             if (existsLocally) {
                 console.log("Schedule already exists locally. Skipping addition.");
                 isAddingSchedule = false;
                 return;
             }
 
-            await sendScheduleToAdafruitIO({ ...schedule, enabled: true, executed: false });
+            // Include device information when sending to Adafruit IO
+            await sendScheduleToAdafruitIO({ ...schedule, device: schedule.device, enabled: true, executed: false });
             fetchSchedules();  // Re-fetch schedules after adding
         } catch (error) {
             console.error('Error adding schedule:', error);
@@ -101,6 +130,7 @@ export default function SchedulePage() {
             isAddingSchedule = false;
         }
     };
+
 
     // If a new schedule is passed via navigation params, add it
     useEffect(() => {
@@ -231,49 +261,92 @@ export default function SchedulePage() {
                 
                 {/* Schedule list */}
                 <ScrollView contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}>
-                    <View style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: 10, borderRadius: 15, marginTop: 15 }}>
-                        {/* Render all saved schedules */}
-                        { schedules.map((schedule, index) => (
-                            <TouchableOpacity
-                                key={schedule.id}
-                                style={{ marginBottom: 20 }}
-                                onPress={() => router.push({
-                                    pathname: '/editSchedule',  // Edit existing schedule
-                                    params: { 
-                                        id: schedule.id, 
-                                        selectedTime: schedule.time, 
-                                        selectedDays: schedule.days,  
-                                        isEditMode: true, 
-                                    }
-                                })}
-                            >
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderRadius: 15 }}>
-                                    <Switch
-                                        trackColor={{ false: "#767577", true: "#4527A0" }}
-                                        thumbColor={schedule.enabled ? "#f4f3f4" : "#f4f3f4"}
-                                        onValueChange={() => toggleSwitch(index)}  // Keep the toggle switch functional
-                                        value={schedule.enabled}
-                                        style={{ flex: 0.4 }}
-                                    />
-                                    <Text style={{ fontSize: 20, color: 'purple', flex: 1, fontWeight: 'bold' }}>
-                                        {schedule.time}  {/* This time will now be editable */}
-                                    </Text>
-                                    <Text style={{ fontSize: 14, color: 'white', flex: 1, textAlign: 'right' }}>
-                                        {schedule.days ? `every ${schedule.days}` : ''}
-                                    </Text>
-                                </View>
-                                <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 2 }} />
-                            </TouchableOpacity>
-                        )) }
-                    </View>
-                    <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]} 
+              {/* Feeder Schedules */}
+                {feederSchedules.length > 0 && (
+                    <>
+                        <Text style={{ fontSize: 22, color: 'purple', marginBottom: 10, fontWeight:'bold', marginTop: 20 }}>Feeder Schedules</Text>
+                        <View style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: 10, borderRadius: 15, marginTop: 15 }}>
+                            {feederSchedules.map((schedule, index) => (
+                                <TouchableOpacity
+                                    key={schedule.id}
+                                    style={{ marginBottom: 20 }}
+                                    onPress={() => router.push({
+                                        pathname: '/editSchedule',
+                                        params: { 
+                                            id: schedule.id, 
+                                            selectedTime: schedule.time, 
+                                            selectedDays: schedule.days,  
+                                            isEditMode: true, 
+                                        }
+                                    })}
+                                >
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderRadius: 15 }}>
+                                        <Switch
+                                            trackColor={{ false: "#767577", true: "#4527A0" }}
+                                            thumbColor={schedule.enabled ? "#f4f3f4" : "#f4f3f4"}
+                                            onValueChange={() => toggleSwitch(index)}
+                                            value={schedule.enabled}
+                                            style={{ flex: 0.4 }}
+                                        />
+                                        <Text style={{ fontSize: 20, color: 'purple', flex: 1, fontWeight: 'bold' }}>
+                                            {schedule.time}
+                                        </Text>
+                                        <Text style={{ fontSize: 14, color: 'white', flex: 1, textAlign: 'right' }}>
+                                            {schedule.days ? `every ${schedule.days}` : ''}
+                                        </Text>
+                                    </View>
+                                    <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 2 }} />
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </>
+                )}
+                   
+                {ledSchedules.length > 0 && (
+                    <>
+                        <Text style={{ fontSize: 22, color: 'purple', marginBottom: 10, fontWeight:'bold', marginTop: 20 }}>LED Schedules</Text>
+                        <View style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: 10, borderRadius: 15, marginTop: 15 }}>
+                            {ledSchedules.map((schedule, index) => (
+                                <TouchableOpacity
+                                    key={schedule.id}
+                                    style={{ marginBottom: 20 }}
+                                    onPress={() => router.push({
+                                        pathname: '/editSchedule',
+                                        params: { 
+                                            id: schedule.id, 
+                                            selectedTime: schedule.time, 
+                                            selectedDays: schedule.days,  
+                                            isEditMode: true, 
+                                        }
+                                    })}
+                                >
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderRadius: 15 }}>
+                                        <Switch
+                                            trackColor={{ false: "#767577", true: "#4527A0" }}
+                                            thumbColor={schedule.enabled ? "#f4f3f4" : "#f4f3f4"}
+                                            onValueChange={() => toggleSwitch(index)}
+                                            value={schedule.enabled}
+                                            style={{ flex: 0.4 }}
+                                        />
+                                        <Text style={{ fontSize: 20, color: 'purple', flex: 1, fontWeight: 'bold' }}>
+                                            {schedule.time}
+                                        </Text>
+                                        <Text style={{ fontSize: 14, color: 'white', flex: 1, textAlign: 'right' }}>
+                                            {schedule.days ? `every ${schedule.days}` : ''}
+                                        </Text>
+                                    </View>
+                                    <View style={{ height: 1, backgroundColor: 'grey', marginVertical: 2 }} />
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </>
+                )}
+                <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65}]} 
                     onPress={deleteAllSchedules}>
                     <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>Delete All Schedule</Text>
                 </TouchableOpacity>
-                </ScrollView>
-                
+                </ScrollView>    
             </SafeAreaView>
-            
         </GestureHandlerRootView>
     );
 }

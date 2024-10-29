@@ -17,16 +17,14 @@ export default function AddSchedule() {
     const [isPickerVisible, setPickerVisible] = useState(false);
     const [selectedDevice, setSelectedDevice] = useState("LED");
 
-
-    // Effect to handle updating state when days or time are passed as params
     useEffect(() => {
         if (selectedDays) {
             setSelectedDaysState(selectedDays.split(','));
         }
 
         if (selectedTime) {
-            const restoredDate = new Date(selectedTime);  // Convert string back to Date object
-            setDate(restoredDate);  // Restore the selected time
+            const restoredDate = new Date(selectedTime);  
+            setDate(restoredDate); 
         }
     }, [selectedDays, selectedTime]);
 
@@ -87,11 +85,11 @@ export default function AddSchedule() {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>  
                         <DateTimePicker
                             testID="TimePicker"
-                            value={date}  // This holds the current selected time
+                            value={date} 
                             mode={"time"}
                             is24Hour={true}
                             display="default"
-                            onChange={onChange}  // Track time changes
+                            onChange={onChange} 
                         />
                         <Icon 
                             name="chevron-forward-outline"
