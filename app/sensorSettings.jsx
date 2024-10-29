@@ -152,7 +152,7 @@ export default function SensorSettings() {
                 minimumTrackTintColor="#9933ff"
                 maximumTrackTintColor="#000000"
               />
-              <Text className="text-xl text-white mb-2">Above Max: {temperatureMax}</Text>
+              <Text className="text-xl text-white mb-2">Max: {temperatureMax}</Text>
               <Slider
                 minimumValue={0} 
                 maximumValue={100} 
