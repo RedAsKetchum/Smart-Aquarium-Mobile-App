@@ -7,21 +7,35 @@ import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 export default function AddSchedule() {
     const router = useRouter();  // Use the router to handle navigation
-    const { selectedDays, selectedTime, isEditMode = false } = useLocalSearchParams();  // Get selectedTime and selectedDays passed from RepeatDay
-
+    const { selectedDays, selectedTime, isEditMode = false, selectedDevice = "LED" } = useLocalSearchParams();  
     const [date, setDate] = useState(new Date());
     const [selectedDaysState, setSelectedDaysState] = useState(selectedDays ? selectedDays.split(',') : []);
     const [isPickerVisible, setPickerVisible] = useState(false);
-    const [selectedDevice, setSelectedDevice] = useState("LED");
+    const [device, setDevice] = useState(selectedDevice);
+    const [scheduledValue, setScheduledValue] = useState(1); 
 
     useEffect(() => {
+        const loadScheduledValue = async () => {
+            try {
+                const value = await AsyncStorage.getItem('scheduledValue');
+                if (value !== null) {
+                    setScheduledValue(parseInt(value, 10));
+                }
+            } catch (error) {
+                console.log('Error loading scheduledValue', error);
+            }
+        };
+    
+        loadScheduledValue();
+    
         if (selectedDays) {
             setSelectedDaysState(selectedDays.split(','));
         }
-
+    
         if (selectedTime) {
             const restoredDate = new Date(selectedTime);  
             setDate(restoredDate); 
@@ -40,24 +54,22 @@ export default function AddSchedule() {
         return selectedDaysState.length > 0 ? selectedDaysState.join(', ') : 'None';
     };
 
-    // Handle Save and pass data back to schedulePage
     const handleSave = () => {
         const newSchedule = JSON.stringify({
-            time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),  // Format time
-            days: selectedDaysState.join(',') || '',  // Join selected days, empty string allowed
-            device: selectedDevice,
+            time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            days: selectedDaysState.join(',') || '',
+            device,
+            scheduledDispenses: device === "LED" ? 1 : scheduledValue,
         });
-    
-        console.log('New Schedule:', newSchedule);  // Check the new schedule data before navigating
+            
+        console.log('New Schedule:', newSchedule);
     
         router.push({
-            pathname: '/schedulePage', 
-            params: { newSchedule },
+            pathname: '/schedulePage',
+            params: { newSchedule, device },
         });
     };
-
     
-
     return (
     <GestureHandlerRootView style={styles.container}>  
         <SafeAreaView className="bg-primary h-full">
@@ -110,6 +122,7 @@ export default function AddSchedule() {
                                 selectedDays: selectedDaysState.join(','), 
                                 selectedTime: date.toISOString(),
                                 isEditMode,
+                                selectedDevice: device,
                             }})}  
                         style={{flexDirection: 'row',padding: 10}}>
                         <Text style={{ fontSize: 17, color: 'purple', marginRight: 10}}>{formatSelectedDays()}</Text>
@@ -128,7 +141,7 @@ export default function AddSchedule() {
                         onPress={() => setPickerVisible(true)}  
                         style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                     >
-                        <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{selectedDevice}</Text>
+                        <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{device}</Text>
                         <Icon name="chevron-forward-outline" size={22} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -142,8 +155,8 @@ export default function AddSchedule() {
                         <View style={{ backgroundColor: 'white', margin: 20, borderRadius: 10, padding: 20 }}>
                             <Text style={{ fontSize: 18, marginBottom: 10 }}>Choose Device</Text>
                             <Picker
-                                selectedValue={selectedDevice}
-                                onValueChange={(itemValue) => setSelectedDevice(itemValue)}
+                                selectedValue={device}
+                                onValueChange={(itemValue) => setDevice(itemValue)}
                                 style={{ width: '100%' }}
                             >
                                 <Picker.Item label="LED" value="LED" />

@@ -14,30 +14,11 @@ const ADAFRUIT_IO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Replace with you
 const ADAFRUIT_IO_FEED = 'feeding-schedule';  // Replace with your Adafruit IO feed
 
 export default function SchedulePage() {
-    const [schedules, setSchedules] = useState([]);  // State for managing schedules
-    const [updating, setUpdating] = useState(false); // Throttle updates to Adafruit IO
-    const { newSchedule, device } = useLocalSearchParams();  // Get new schedule from parameters
+    const [schedules, setSchedules] = useState([]);  
+    const [updating, setUpdating] = useState(false); 
+    const {newSchedule, device } = useLocalSearchParams();  
     const feederSchedules = schedules.filter(schedule => schedule.device === 'Feeder');
     const ledSchedules = schedules.filter(schedule => schedule.device === 'LED');
-    const [scheduledDispenses, setScheduledDispenses] = useState(1); // State for scheduled dispenses
- 
-    // Function to load scheduled dispenses count from AsyncStorage
-    const loadScheduledDispenses = async () => {
-        try {
-            const savedScheduledValue = await AsyncStorage.getItem('scheduledValue');
-            if (savedScheduledValue !== null) {
-                setScheduledDispenses(parseInt(savedScheduledValue, 10));
-                console.log('Scheduled Dispenses Count:', parseInt(savedScheduledValue, 10));
-            }
-        } catch (error) {
-            console.error('Error loading scheduled dispenses:', error);
-            Alert.alert('Error', 'Failed to load scheduled dispenses.');
-        }
-    };
-
-    useEffect(() => {
-        loadScheduledDispenses(); // Load scheduled dispenses on component mount
-    }, []);
 
     // Function to send a new schedule to Adafruit IO
     const sendScheduleToAdafruitIO = async (schedule) => {
@@ -130,13 +111,17 @@ export default function SchedulePage() {
             isAddingSchedule = false;
         }
     };
-
-
-    // If a new schedule is passed via navigation params, add it
+    
     useEffect(() => {
         if (newSchedule) {
             try {
                 const parsedSchedule = JSON.parse(newSchedule);
+    
+                console.log("Number of Dispenses:", parsedSchedule.scheduledDispenses);
+                if (device) {
+                    console.log("Device selected:", device); // Logs the device received from addSchedule
+                }
+    
                 const exists = schedules.some(s => s.time === parsedSchedule.time && s.days === parsedSchedule.days);
                 if (!exists) {
                     addSchedule(parsedSchedule);
@@ -148,19 +133,20 @@ export default function SchedulePage() {
                 Alert.alert('Error', 'Failed to add new schedule.');
             }
         }
-    }, [newSchedule]);
-
-    const toggleSwitch = async (index) => {
+    }, [newSchedule, device]);
+    
+    const toggleSwitch = async (scheduleId) => {
         if (updating) return;
     
-        const scheduleToToggle = schedules[index];
-        
-        // Check if the ID is valid
-        if (!scheduleToToggle.id) {
-            console.error("Schedule ID is missing or invalid:", scheduleToToggle.id);
-            Alert.alert("Error", "Schedule ID is missing or invalid.");
+        // Find the schedule by ID in the full schedules array
+        const scheduleIndex = schedules.findIndex(schedule => schedule.id === scheduleId);
+        if (scheduleIndex === -1) {
+            console.error("Schedule ID not found:", scheduleId);
+            Alert.alert("Error", "Schedule not found.");
             return;
         }
+    
+        const scheduleToToggle = schedules[scheduleIndex];
     
         const updatedSchedule = {
             ...scheduleToToggle, 
@@ -171,24 +157,27 @@ export default function SchedulePage() {
         const finalPayload = { value: JSON.stringify(updatedSchedule) };
         const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${scheduleToToggle.id}`;
     
+        setUpdating(true);
+    
         try {
             const response = await axios.put(url, finalPayload, {
                 headers: { 'X-AIO-Key': ADAFRUIT_IO_KEY }
             });
             console.log(`Schedule with ID ${scheduleToToggle.id} updated successfully.`);
     
-            const updatedSchedules = schedules.map((schedule, i) =>
-                i === index ? { ...updatedSchedule, id: scheduleToToggle.id } : schedule
-            );
+            // Update only the toggled schedule in the state
+            const updatedSchedules = [...schedules];
+            updatedSchedules[scheduleIndex] = { ...updatedSchedule, id: scheduleToToggle.id };
             setSchedules(updatedSchedules);
-            
+    
         } catch (error) {
             console.error('Error updating schedule:', error);
             Alert.alert('Error', 'Failed to update schedule.');
+        } finally {
+            setUpdating(false);
         }
     };
     
-
     const deleteAllSchedules = async () => {
         Alert.alert(
             'Delete All Schedules',
@@ -277,6 +266,7 @@ export default function SchedulePage() {
                                             selectedTime: schedule.time, 
                                             selectedDays: schedule.days,  
                                             isEditMode: true, 
+                                            selectedDevice: schedule.device
                                         }
                                     })}
                                 >
@@ -284,7 +274,7 @@ export default function SchedulePage() {
                                         <Switch
                                             trackColor={{ false: "#767577", true: "#4527A0" }}
                                             thumbColor={schedule.enabled ? "#f4f3f4" : "#f4f3f4"}
-                                            onValueChange={() => toggleSwitch(index)}
+                                            onValueChange={() => toggleSwitch(schedule.id)} // Pass schedule.id
                                             value={schedule.enabled}
                                             style={{ flex: 0.4 }}
                                         />
@@ -324,10 +314,11 @@ export default function SchedulePage() {
                                         <Switch
                                             trackColor={{ false: "#767577", true: "#4527A0" }}
                                             thumbColor={schedule.enabled ? "#f4f3f4" : "#f4f3f4"}
-                                            onValueChange={() => toggleSwitch(index)}
+                                            onValueChange={() => toggleSwitch(schedule.id)} // Pass schedule.id
                                             value={schedule.enabled}
                                             style={{ flex: 0.4 }}
                                         />
+
                                         <Text style={{ fontSize: 20, color: 'purple', flex: 1, fontWeight: 'bold' }}>
                                             {schedule.time}
                                         </Text>

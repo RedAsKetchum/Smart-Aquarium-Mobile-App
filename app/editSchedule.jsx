@@ -8,6 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios'; 
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Adafruit IO Configuration
 const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  // Replace with your Adafruit IO username
@@ -16,37 +17,35 @@ const ADAFRUIT_IO_FEED = 'feeding-schedule';  // Replace with your Adafruit IO f
 
 export default function EditSchedule() {
     const router = useRouter();
-    const { selectedDays, selectedTime, id, isEditMode } = useLocalSearchParams();
-
+    const { id, selectedDays, selectedTime, isEditMode = false, selectedDevice = "LED" } = useLocalSearchParams();
     const [date, setDate] = useState(new Date());
     const [selectedDaysState, setSelectedDaysState] = useState(selectedDays ? selectedDays.split(',') : []);
     const [isPickerVisible, setPickerVisible] = useState(false);
-    const [selectedDevice, setSelectedDevice] = useState("LED");
+    const [device, setDevice] = useState(selectedDevice);
+    const [scheduledValue, setScheduledValue] = useState(1);
+    const [scheduleId, setScheduleId] = useState(id);
+    
+    useEffect(() => {
+        if (id) {
+            setScheduleId(id);
+        }
+    }, [id]);
 
     useEffect(() => {
-        if (isEditMode) {
-            
-            if (selectedDays) {
-                setSelectedDaysState(selectedDays.split(','));
-            }
-    
-            if (selectedTime) {
-                const timeParts = selectedTime.split(':');
-                if (timeParts.length === 2) {
-                    const [hours, minutes] = timeParts;
-                    const restoredDate = new Date();
-                    restoredDate.setHours(parseInt(hours));
-                    restoredDate.setMinutes(parseInt(minutes));
-                    setDate(restoredDate);
+        // Load scheduledValue from AsyncStorage if it exists
+        const loadScheduledValue = async () => {
+            try {
+                const value = await AsyncStorage.getItem('scheduledValue');
+                if (value !== null) {
+                    setScheduledValue(parseInt(value, 10));
                 }
+            } catch (error) {
+                console.log('Error loading scheduledValue:', error);
             }
+        };
 
-            if (selectedDevice) {
-                setSelectedDevice(selectedDevice);
-            }
-        }
-    }, [isEditMode, selectedDays, selectedTime, selectedDevice]);
-    
+        loadScheduledValue();
+    }, []);
 
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -57,24 +56,24 @@ export default function EditSchedule() {
         return selectedDaysState.length > 0 ? selectedDaysState.join(', ') : 'None';
     };
 
-    // Save the updated schedule to Adafruit IO
     const handleSave = async () => {
+    
         const newSchedule = {
             time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            days: selectedDaysState.join(','),  // Send updated days as a string
-            enabled: true,  // Enable by default
-            executed: false,  // Set executed to false initially
-            device: selectedDevice  // Include selected device type
+            days: selectedDaysState.join(','),
+            device,
+            scheduledDispenses: device === "LED" ? 1 : scheduledValue,
+            enabled: true,
+            executed: false,
         };
     
         if (isEditMode) {
-            // Edit existing schedule
-            if (!id) {
+            if (!scheduleId) {
                 Alert.alert("Error", "No schedule ID provided for editing.");
                 return;
             }
     
-            const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${id}`;
+            const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${scheduleId}`;
     
             try {
                 const response = await axios.put(url, {
@@ -114,12 +113,12 @@ export default function EditSchedule() {
     };
     
     const deleteSchedule = async () => {
-        if (!id) {
+        if (!scheduleId) {
             Alert.alert("Error", "No schedule ID provided.");
             return;
         }
     
-        const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${id}`;  // Delete the schedule by id
+        const url = `https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${scheduleId}`;
     
         try {
             const response = await axios.delete(url, {
@@ -130,7 +129,7 @@ export default function EditSchedule() {
     
             console.log("Schedule deleted from Adafruit IO:", response.data);
             Alert.alert("Success", "Schedule deleted successfully.");
-            router.push('/schedulePage');  // Navigate back to the schedule page after deletion
+            router.push('/schedulePage');
         } catch (error) {
             console.error('Error deleting schedule:', error);
             Alert.alert('Error', 'Failed to delete schedule from Adafruit IO.');
@@ -189,12 +188,12 @@ export default function EditSchedule() {
                                     onPress={() => router.push({ 
                                         pathname: './repeatDay', 
                                         params: { 
-                                            selectedDays: selectedDaysState.join(','),  
-                                            selectedTime: date.toISOString(),  
-                                            id,  
-                                            isEditMode: true,  
-                                        }
-                                    })}  
+                                            id,
+                                            selectedDays: selectedDaysState.join(','), 
+                                            selectedTime: date.toISOString(),
+                                            isEditMode,
+                                            selectedDevice: device,
+                                        }})}  
                                     style={{flexDirection: 'row',padding: 10}}>
                                     <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{formatSelectedDays()}</Text>
                                     <Icon 
@@ -211,7 +210,7 @@ export default function EditSchedule() {
                         onPress={() => setPickerVisible(true)}  
                         style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                     >
-                        <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{selectedDevice}</Text>
+                        <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{device}</Text>
                         <Icon name="chevron-forward-outline" size={22} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -225,8 +224,8 @@ export default function EditSchedule() {
                         <View style={{ backgroundColor: 'white', margin: 20, borderRadius: 10, padding: 20 }}>
                             <Text style={{ fontSize: 18, marginBottom: 10 }}>Choose Device</Text>
                             <Picker
-                                selectedValue={selectedDevice}
-                                onValueChange={(itemValue) => setSelectedDevice(itemValue)}
+                                selectedValue={device}
+                                onValueChange={(itemValue) => setDevice(itemValue)}
                                 style={{ width: '100%' }}
                             >
                                 <Picker.Item label="LED" value="LED" />

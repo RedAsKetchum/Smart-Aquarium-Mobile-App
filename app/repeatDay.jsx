@@ -9,19 +9,10 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function RepeatDay() {
     const navigation = useNavigation(); 
-    const { selectedTime, selectedDays: selectedDaysParam, id, isEditMode } = useLocalSearchParams();  // `isEditMode` is coming from navigation params
+    const { selectedDevice = "LED" , selectedTime, selectedDays: selectedDaysParam, id, isEditMode } = useLocalSearchParams();  // `isEditMode` is coming from navigation params
     const initialSelectedDays = selectedDaysParam ? selectedDaysParam.split(',') : [];
     const [selectedDays, setSelectedDays] = useState(initialSelectedDays);
-
-     // Log the parameters being passed
-     useEffect(() => {
-        console.log('Parameters passed to RepeatDay:', {
-            selectedTime,
-            selectedDays: selectedDaysParam,
-            id,
-            isEditMode
-        });
-    }, []);
+    const [device, setDevice] = useState(selectedDevice);
 
     const days = [
         { id: 'Su', label: 'Every Sunday' },
@@ -55,6 +46,7 @@ export default function RepeatDay() {
                     selectedTime,
                     id,  
                     isEditMode: true,  // Ensure we're in edit mode
+                    selectedDevice: device,
                 }
             });
         } else {
@@ -65,6 +57,7 @@ export default function RepeatDay() {
                     selectedDays: selectedDays.join(','), 
                     selectedTime,
                     isEditMode: false,  // Ensure we're in add mode
+                    selectedDevice: device,
                 }
             });
         }
