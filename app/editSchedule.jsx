@@ -147,7 +147,7 @@ export default function EditSchedule() {
                         <Text style={{ fontSize: 17, fontWeight: 'bold', color: 'purple' }}>Cancel</Text>
                     </TouchableOpacity>
                     <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>
-                        {isEditMode ? 'Edit' : 'Add'} Schedule
+                        {isEditMode ? 'Edit' : 'Add'}
                     </Text>
                     <TouchableOpacity  
                         onPress={handleSave}
