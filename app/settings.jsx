@@ -38,6 +38,33 @@ const settings = () => {
     }
   };
 
+    // Function to send format command to Adafruit IO
+    const sendFormatCommand = async () => {
+      try {
+        const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/format-action/data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-AIO-Key': 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH',
+          },
+          body: JSON.stringify({
+            value: "format",
+          }),
+        });
+  
+        const responseData = await response.json();
+        console.log(responseData);
+  
+        if (response.ok) {
+          console.log('Format command sent');
+        } else {
+          console.error('Failed to send format command:', responseData);
+        }
+      } catch (error) {
+        console.error('Error sending format command:', error);
+      }
+    };
+
   return (
     <GestureHandlerRootView style={styles.container}>  
       <SafeAreaView className="bg-primary h-full">
@@ -46,13 +73,12 @@ const settings = () => {
           className="flex-1 absolute top-0 left-0 right-0 bottom-0" 
           resizeMode="cover" 
         />
-  
         {/* Back button and Settings title sharing the same marginTop */}
         <View className="flex-row items-center justify-center px-4 mt-5 relative">
           {/* Back button */}
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="absolute left-0 p-2"
+            className="absolute left-0 p-2 ml-3"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}  // Expands clickable area
           >
             <Icon name="arrow-back" size={35} color="white" />
@@ -104,7 +130,7 @@ const settings = () => {
           </TouchableOpacity>
   
           {/* Format */}
-          <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64}]} onPress={sendRebootCommand}>
+          <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64}]} onPress={sendFormatCommand}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>
               Format
             </Text>
@@ -113,9 +139,6 @@ const settings = () => {
       </SafeAreaView>
     </GestureHandlerRootView>
   );
-  
-  
-  
   
 };
 

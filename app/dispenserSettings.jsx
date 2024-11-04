@@ -7,17 +7,58 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker'; // Picker for scrollable numbers
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import { Alert } from 'react-native'; // Import Alert component
-
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import axios from 'axios';
+
+// Adafruit IO Configuration
+const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  
+const ADAFRUIT_IO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
+const ADAFRUIT_IO_FEED = 'feeding-schedule'; 
 
 export default function DispenserSettings() {
   const [scheduledValue, setScheduledValue] = useState(1); // State for Scheduled option
   const [manualValue, setManualValue] = useState(1); // State for Manual option
   const [isScheduledPickerEnabled, setIsScheduledPickerEnabled] = useState(false); // State for enabling/disabling the Scheduled picker
   const [isManualPickerEnabled, setIsManualPickerEnabled] = useState(false); // State for enabling/disabling the Manual picker
-
   const navigation = useNavigation(); // Use useNavigation hook
 
+  const sendToAdafruitIO = async (newDispensesValue) => {
+    try {
+      // Step 1: Fetch all data entries for the feed
+      const response = await axios.get(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data`, {
+        headers: { 'X-AIO-Key': ADAFRUIT_IO_KEY }
+      });
+      
+      const allEntries = response.data;
+  
+      // Step 2: Filter entries where device is "Feeder"
+      const feederEntries = allEntries.filter(entry => {
+        const dataValue = JSON.parse(entry.value);
+        return dataValue.device === "Feeder";
+      });
+  
+      // Step 3: Update the scheduledDispenses for each "Feeder" entry and send it back
+      for (const entry of feederEntries) {
+        let updatedData = JSON.parse(entry.value);
+        updatedData.scheduledDispenses = newDispensesValue;
+  
+        // Update the specific entry with the new scheduledDispenses value
+        await axios.put(`https://io.adafruit.com/api/v2/${ADAFRUIT_IO_USERNAME}/feeds/${ADAFRUIT_IO_FEED}/data/${entry.id}`, {
+          value: JSON.stringify(updatedData),
+        }, {
+          headers: {
+            'X-AIO-Key': ADAFRUIT_IO_KEY,
+            'Content-Type': 'application/json'
+          }
+        });
+  
+        console.log(`Updated scheduledDispenses for entry with id ${entry.id}`);
+      }
+    } catch (error) {
+      console.log('Error updating Adafruit IO data', error);
+    }
+  };
+  
   // Retrieve saved values from AsyncStorage when component mounts
   useEffect(() => {
     const loadValues = async () => {
@@ -43,7 +84,7 @@ export default function DispenserSettings() {
     try {
       await AsyncStorage.setItem('scheduledValue', scheduledValue.toString());
       await AsyncStorage.setItem('manualValue', manualValue.toString());
-      //alert('Values saved successfully!');
+      await sendToAdafruitIO(scheduledValue);
     } catch (error) {
       console.log('Error saving values', error);
     }
