@@ -1,42 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, SafeAreaView } from 'react-native';
-import { ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
+import { TouchableOpacity, ImageBackground } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { router } from 'expo-router';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { useNavigation } from '@react-navigation/native';
+import TemperatureIcon from 'react-native-vector-icons/MaterialCommunityIcons'; // For example icon
+import TurbidityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import PHIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
-const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
-const FEED_KEY = 'temperature-sensor';  // Your specific feed key
-const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?limit=168`;  // Fetch the last 168 entries or 24 entries per day for 7 days
+const AIO_USERNAME = 'RedAsKetchum';
+const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';
+const FEED_KEY = 'temperature-sensor';
+const FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?limit=168`;
 
-// Memoized component for rendering each item
 const RenderItem = React.memo(({ item }) => (
-  <View className="py-4 px-4">
-    {/* Date (white) and Time (purple) in a single line with increased font size */}
-    <Text className="font-bold text-lg">
-      <Text className="text-white">{`${item.Date}`}</Text>
-      <Text className="text-black">{`  ${item.Sensor1Timestamp}`}</Text>
-    </Text>
-
-    {/* Temperature, pH Level, and Turbidity in a row with increased font size */}
-    <View className="mt-2">
-      <Text className="text-black text-base">{`Temperature: ${item.Sensor1} °F`}</Text>
-      <Text className="text-black text-base">{`Turbidity: ${item.Sensor3} NTU`}</Text>
-      <Text className="text-black text-base">{`pH Level: ${item.Sensor2}`}</Text>
-      {/* <Text className="text-black text-base">{`Turbidity: ${item.Sensor3} NTU`}</Text> */}
+  <View className="p-3 bg-white rounded-lg m-3 shadow-sm flex-row">
+    <View style={{ flex: 1 }}>
+      <Text className="font-bold text-lg text-black">{`${item.Date}  ${item.Sensor1Timestamp}`}</Text>
+    </View>
+    <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', marginTop: 8 }}>
+      <View className="flex-row items-center">
+        <TemperatureIcon name="thermometer" size={18} color="#FF6347" />
+        <Text className="text-black text-base ml-2">{`Temperature: ${item.Sensor1} °F`}</Text>
+      </View>
+      <View className="flex-row items-center mt-1">
+        <TurbidityIcon name="water" size={18} color="#1E90FF" />
+        <Text className="text-black text-base ml-2">{`Turbidity: ${item.Sensor3} NTU`}</Text>
+      </View>
+      <View className="flex-row items-center mt-1">
+        <PHIcon name="test-tube" size={18} color="#32CD32" />
+        <Text className="text-black text-base ml-2">{`pH Level: ${item.Sensor2}`}</Text>
+      </View>
     </View>
   </View>
 ));
 
- {/* <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor2Timestamp}`}</Text> */}
-  {/* <Text className="text-gray-500 mt-2">{`Time: ${item.Sensor3Timestamp}`}</Text> */}
-
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState([]);
-  const navigation = useNavigation(); // Use useNavigation hook
+  const navigation = useNavigation();
 
-  // Fetch data from Adafruit IO and remove duplicates
   const fetchHistoryData = async () => {
     try {
       const response = await fetch(FEED_URL, {
@@ -44,52 +45,58 @@ export default function HistoryPage() {
           'X-AIO-Key': AIO_KEY,
         },
       });
-      const data = await response.json();  // Fetch the array of data
-      const parsedData = data.map((item) => JSON.parse(item.value));  // Parse each JSON string
+      const data = await response.json();
+      const parsedData = data.map((item) => JSON.parse(item.value));
 
-      // Remove duplicates based on the ID field
       const uniqueData = parsedData.filter((item, index, self) =>
         index === self.findIndex((t) => t.ID === item.ID)
       );
 
-      setHistoryData(uniqueData);  // Set the state with de-duplicated data
+      setHistoryData(uniqueData);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
 
-  // Fetch data once when the component is mounted
   useEffect(() => {
     fetchHistoryData();
   }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Keep the ImageBackground */}
       <ImageBackground 
         source={require('../assets/images/gradient.png')} 
         className="flex-1 absolute top-0 left-0 right-0 bottom-0" 
         resizeMode="cover"
       ></ImageBackground>
 
-      <View className="flex-row items-center justify-center px-4 mt-2 relative">
-        {/* Back button */}
+      <View className="flex-row items-center justify-center px-4 mt-2 mb-6 relative">
         <TouchableOpacity 
-          onPress={() => navigation.goBack()} // This navigates back to the previous screen
-          className="absolute left-0 p-2" >
+          onPress={() => navigation.goBack()}
+          className="absolute left-0 p-2"
+        >
           <Icon name="arrow-back" size={35} color="white" />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold mb-2 text-white text-center">History</Text>
+
+        <Text className="text-2xl font-bold text-white text-center">History</Text>
+
+        <TouchableOpacity 
+          onPress={() => console.log('Dispenses button pressed')}
+          className="absolute right-0 p-2"
+        >
+          <Text className="text-white text-lg font-bold">Dispenses</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
         data={historyData}
-        renderItem={({ item }) => <RenderItem item={item} />}  // Use memoized component
+        renderItem={({ item }) => <RenderItem item={item} />}
         keyExtractor={(item, index) => {
-          const key = item.ID ? item.ID.toString() : index.toString();
-          return key;
+          // Check if 'ID' exists and is unique, if not, fall back to a combination of properties.
+          return item.ID ? item.ID.toString() : `${item.Sensor1Timestamp}-${item.Sensor2}-${item.Sensor3}-${index}`;
         }}
-        ItemSeparatorComponent={() => <View className="h-[1px] bg-gray-300 mx-4" />}
+        
+        //ItemSeparatorComponent={() => <View className="h-[1px] bg-gray-300 mx-4" />}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
     </SafeAreaView>
