@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -6,12 +6,15 @@ import { router } from 'expo-router';
 import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const settings = () => {
 
   const navigation = useNavigation(); // Use useNavigation hook
 
   const [networkName, setNetworkName] = useState('');
+  const networkNameRef = useRef(null);  // Use useRef to store networkName persistently
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,51 +23,40 @@ const settings = () => {
   const FEED_KEY = 'wifi-network';  // Your feed key
 
   useEffect(() => {
-    const AIO_ENDPOINT = 'https://io.adafruit.com/api/v2/RedAsKetchum/feeds/wifi-network/data/last';
-
-    // Function to fetch the latest Wi-Fi network name from Adafruit IO
-  const fetchWifiNetworkName = async () => {
-    try {
-      // Construct the API endpoint URL
-      const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?X-AIO-Key=${AIO_KEY}`;
+    const fetchWifiNetworkName = async () => {
+      setLoading(true); // Start loading state
       
-      // Fetch data from Adafruit IO
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        // Get the most recent data entry
-        const wifiData = data[0];
-        
-        // Ensure that 'value' contains a JSON string with the 'network_name'
-        if (wifiData.value) {
-          const parsedData = JSON.parse(wifiData.value);  // Parse the JSON string inside `value`
-          
-          // Check if 'network_name' is present and valid in the parsed data
-          if (parsedData.network_name) {
-            setNetworkName(parsedData.network_name);  // Update state with Wi-Fi network name
-          } else {
-            console.error("Network name is missing or invalid.");
-            setError("Network name is missing or invalid.");
-          }
-        } else {
-          console.error("No value found in the response.");
-          setError("No value found in the response.");
+      try {
+        // Check if a cached network name exists
+        const cachedName = await AsyncStorage.getItem('networkName');
+        if (cachedName) {
+          setNetworkName(cachedName); // Set cached name immediately
         }
-      } else {
-        console.error("No data found in the feed.");
-        setError("No data found in the feed.");
+  
+        const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?X-AIO-Key=${AIO_KEY}`;
+        const response = await fetch(url);
+        const data = await response.json();
+  
+        if (data && data.length > 0 && data[0].value) {
+          const parsedData = JSON.parse(data[0].value);
+          if (parsedData.network_name) {
+            const newNetworkName = parsedData.network_name;
+            setNetworkName(newNetworkName); // Set the updated network name
+            
+            // Cache the network name
+            await AsyncStorage.setItem('networkName', newNetworkName);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching Wi-Fi network name:', err);
+        setError(`Error: ${err.message}`);
+      } finally {
+        setLoading(false); // Stop loading
       }
-    } catch (err) {
-      console.error('Error fetching Wi-Fi network name:', err);
-      setError(`Error: ${err.message}`);
-    } finally {
-      setLoading(false);  // Set loading to false once the request is finished
-    }
-  };
-
-      fetchWifiNetworkName();
-    }, []); // Empty dependency array ensures this runs once on component mount
+    };
+  
+    fetchWifiNetworkName();
+  }, []);
     
     // Function to send reboot command to Adafruit IO
     const sendRebootCommand = async () => {
