@@ -186,7 +186,7 @@ const fetchSensorData = async () => {
               // Construct the payload with 'Time' and 'Amount' as JSON strings
               const payload = {
                 value: JSON.stringify({
-                  Type: "Manual Food",
+                  Type: "Manual",
                   action: "activate",  
                   Time: currentTime,
                   Amount: manualValue
