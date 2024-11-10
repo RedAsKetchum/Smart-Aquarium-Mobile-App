@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Text, View, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,32 +11,87 @@ const settings = () => {
 
   const navigation = useNavigation(); // Use useNavigation hook
 
-  // Function to send reboot command to Adafruit IO
-  const sendRebootCommand = async () => {
+  const [networkName, setNetworkName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
+  const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
+  const FEED_KEY = 'wifi-network';  // Your feed key
+
+  useEffect(() => {
+    const AIO_ENDPOINT = 'https://io.adafruit.com/api/v2/RedAsKetchum/feeds/wifi-network/data/last';
+
+    // Function to fetch the latest Wi-Fi network name from Adafruit IO
+  const fetchWifiNetworkName = async () => {
     try {
-      const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-AIO-Key': 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH',  // Your AIO key
-        },
-        body: JSON.stringify({
-          value: "reboot",  // The value you want to send to the feed
-        }),
-      });
+      // Construct the API endpoint URL
+      const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data?X-AIO-Key=${AIO_KEY}`;
+      
+      // Fetch data from Adafruit IO
+      const response = await fetch(url);
+      const data = await response.json();
 
-      const responseData = await response.json();  // Parse the response data
-      console.log(responseData);  // Log the full response
-
-      if (response.ok) {
-        console.log('Reboot command sent');
+      if (data && data.length > 0) {
+        // Get the most recent data entry
+        const wifiData = data[0];
+        
+        // Ensure that 'value' contains a JSON string with the 'network_name'
+        if (wifiData.value) {
+          const parsedData = JSON.parse(wifiData.value);  // Parse the JSON string inside `value`
+          
+          // Check if 'network_name' is present and valid in the parsed data
+          if (parsedData.network_name) {
+            setNetworkName(parsedData.network_name);  // Update state with Wi-Fi network name
+          } else {
+            console.error("Network name is missing or invalid.");
+            setError("Network name is missing or invalid.");
+          }
+        } else {
+          console.error("No value found in the response.");
+          setError("No value found in the response.");
+        }
       } else {
-        console.error('Failed to send reboot command:', responseData);
+        console.error("No data found in the feed.");
+        setError("No data found in the feed.");
       }
-    } catch (error) {
-      console.error('Error sending reboot command:', error);
+    } catch (err) {
+      console.error('Error fetching Wi-Fi network name:', err);
+      setError(`Error: ${err.message}`);
+    } finally {
+      setLoading(false);  // Set loading to false once the request is finished
     }
   };
+
+      fetchWifiNetworkName();
+    }, []); // Empty dependency array ensures this runs once on component mount
+    
+    // Function to send reboot command to Adafruit IO
+    const sendRebootCommand = async () => {
+      try {F
+        const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-AIO-Key': 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH',  // Your AIO key
+          },
+          body: JSON.stringify({
+            value: "reboot",  // The value you want to send to the feed
+          }),
+        });
+
+        const responseData = await response.json();  // Parse the response data
+        console.log(responseData);  // Log the full response
+
+        if (response.ok) {
+          console.log('Reboot command sent');
+        } else {
+          console.error('Failed to send reboot command:', responseData);
+        }
+      } catch (error) {
+        console.error('Error sending reboot command:', error);
+      }
+    };
 
     // Function to send format command to Adafruit IO
     const sendFormatCommand = async () => {
@@ -98,7 +153,8 @@ const settings = () => {
             textAlign: 'center', 
             marginTop: 0 
           }}>
-            Connected to: "Network Name"
+            Wi-Fi: {networkName || 'Connecting to the Network...'}
+           
           </Text>
   
           {/* Sensor Settings */}
