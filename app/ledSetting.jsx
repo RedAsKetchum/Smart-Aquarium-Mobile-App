@@ -194,26 +194,17 @@ const ColorPickerComponent = () => {
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaView className="bg-primary h-full">
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        {/* Header with Back and Add Buttons */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
-                    {/* Back button */}
-                    <TouchableOpacity 
-                         onPress={handleBackPress} 
-                        style={{ padding: 10 }}
-                    >
-                        <Icon name="arrow-back" size={35} color="white" />
-                    </TouchableOpacity>
-                    
-                         <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
-                   
-                   
-                    {/* Add Schedule Button */}
-                    <TouchableOpacity 
-                       onPress={() => saveToAdafruitIO(selectedColor, brightness)}
-                        style={{ marginRight: 10}}>
-                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Save</Text>
-                    </TouchableOpacity>
-                </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
+          <TouchableOpacity onPress={handleBackPress} style={{padding: 10, marginLeft: 10}}>
+            <Icon name="arrow-back" size={30} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{padding: 10, marginRight: 18}}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Save</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 20}}>
+          <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
+        </View>
         <View style={{flex: 0.8, justifyContent: 'center', alignItems: 'center'}}>
           <WheelColorPicker
             color={selectedColor}
