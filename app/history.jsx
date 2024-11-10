@@ -25,10 +25,13 @@ const RenderItem = React.memo(({ item, isDispenser }) => (
     <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', marginTop: 8 }}>
       {isDispenser ? (
         <>
+          {/* Display Type (Manual) Icon and Text */}
           <View className="flex-row items-center">
             <FoodIcon name="fishbowl" size={18} color="#FFA500" />
-            <Text className="text-black text-base ml-2">Type: Food</Text>
+            <Text className="text-black text-base ml-2">Type: </Text>
+            <Text className="text-black text-base">{item.Type}</Text>
           </View>
+          
           <View className="flex-row items-center mt-1">
             <AmountIcon name="scale" size={18} color="#9c9e9f" />
             <Text className="text-black text-base ml-2">{`Amount: ${item.Amount}`}</Text>
@@ -41,7 +44,6 @@ const RenderItem = React.memo(({ item, isDispenser }) => (
             <Text className="text-black text-base ml-2">{`Temperature: ${item.Sensor1} °F`}</Text>
           </View>
           <View className="flex-row items-center mt-1">
-            {/* <TurbidityIcon name="water" size={18} color="#1E90FF" /> */}
             <TurbidityIcon name="water" size={18} color="#2489FD" />
             <Text className="text-black text-base ml-2">{`Turbidity: ${item.Sensor3} NTU`}</Text>
           </View>
@@ -75,6 +77,7 @@ export default function HistoryPage() {
       const parsedData = data.map((item) => {
         try {
           const parsedValue = JSON.parse(item.value);
+          console.log(parsedValue); // Add this line to inspect the structure
           if (parsedValue && typeof parsedValue === 'object') {
             return parsedValue;
           }
@@ -92,10 +95,15 @@ export default function HistoryPage() {
           );
 
       if (isDispenser) {
-        const formattedDispenserData = uniqueData.map(item => ({
-          Amount: item.Amount,
-          Time: item.Time,
-        }));
+        const formattedDispenserData = uniqueData.map(item => {
+          // Debugging Type field presence
+          console.log(item.Type); // Check if Type exists in the item
+          return {
+            Type: item.Type, // Ensure Type is correctly mapped
+            Amount: item.Amount,
+            Time: item.Time,
+          };
+        });
         setHistoryData(formattedDispenserData);
       } else {
         const formattedSensorData = uniqueData.map(item => ({
