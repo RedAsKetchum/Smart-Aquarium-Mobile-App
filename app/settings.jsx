@@ -145,7 +145,7 @@ const settings = () => {
             textAlign: 'center', 
             marginTop: 0 
           }}>
-            Wi-Fi: {networkName || 'Connecting to the Network...'}
+            Wi-Fi: {networkName || 'Disconnected'}
            
           </Text>
   
