@@ -27,7 +27,7 @@ const settings = () => {
       setLoading(true); // Start loading state
       
       try {
-        // Check if a cached network name exists
+        //Check if a cached network name exists
         const cachedName = await AsyncStorage.getItem('networkName');
         if (cachedName) {
           setNetworkName(cachedName); // Set cached name immediately
