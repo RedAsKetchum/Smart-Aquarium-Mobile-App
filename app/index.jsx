@@ -14,7 +14,6 @@ import { styles } from './AppStyles'; //imports app styles for components using 
 import { styled } from 'nativewind';
 import axios from 'axios'; //for servo motor control
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Appearance,StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 
 // ********************* Adafruit IO credentials ***********************/
