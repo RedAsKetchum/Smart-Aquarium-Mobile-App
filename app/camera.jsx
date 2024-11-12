@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, ImageBackground, Image, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { Text, View, ImageBackground, TouchableOpacity, Dimensions, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { WebView } from 'react-native-webview';
 
-export default function RepeatDay() {
+export default function StreamScreen() {
     const navigation = useNavigation();
-    const webviewRef = useRef(null);  // Reference for WebView
+    const webviewRef = useRef(null);
 
     const [isVideoReady, setIsVideoReady] = useState(false);
-    const [isVideoPaused, setIsVideoPaused] = useState(false);
-
-    const screenWidth = Dimensions.get('window').width;
-    const screenHeight = Dimensions.get('window').height;
+    const [streamStats, setStreamStats] = useState({
+        resolution: '1920x1080', // Placeholder
+        fps: 30,                 // Placeholder
+        bitrate: '3500 kbps',     // Placeholder
+    });
 
     const htmlContent = ` 
         <html>
@@ -35,52 +36,56 @@ export default function RepeatDay() {
             </head>
             <body>
                 <iframe 
+                    id="video-player"
                     src="https://www.youtube.com/embed/QKSJLZ8p6mQ?controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&enablejsapi=1&disable-related=1&autoplay=1"
                     frameborder="0" 
                     allow="autoplay; encrypted-media" 
                     allowfullscreen>
                 </iframe>
-                <script>
-                    var player = document.querySelector('iframe');
-                    player.addEventListener('pause', function() {
-                        window.ReactNativeWebView.postMessage('paused');
-                    });
-                    player.addEventListener('play', function() {
-                        window.ReactNativeWebView.postMessage('playing');
-                    });
-                </script>
             </body>
         </html>
     `;
 
-    // Handle video load event
     const handleVideoLoad = () => {
         setIsVideoReady(true); // Set video to ready when it starts loading
     };
 
-    // Handle WebView message (Pause, Play, etc.)
-    const handleWebViewMessage = (event) => {
-        const message = event.nativeEvent.data;
-        if (message === 'paused') {
-            setIsVideoPaused(true);  // Video is paused
-        } else if (message === 'playing') {
-            setIsVideoPaused(false);  // Video is playing
-        }
-    };
+    // Sample function to simulate fetching stream stats
+    useEffect(() => {
+        const fetchStreamStats = () => {
+            // Update this logic with actual API calls if available
+            setStreamStats({
+                resolution: '1920x1080',
+                fps: 30,
+                bitrate: '4000 kbps',
+            });
+        };
+
+        // Call initially, and set an interval to fetch updated stats every few seconds
+        fetchStreamStats();
+        const interval = setInterval(fetchStreamStats, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>  
             <SafeAreaView style={{ flex: 1, backgroundColor: 'primary' }}>
-                <ImageBackground source={require('../assets/images/gradient.png')} style={{ flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} resizeMode="cover" />
-
-                {/* Header with Cancel */}
-                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 10, marginTop: 10, marginBottom: 50 }}>
+                {/* Gradient Background */}
+                <ImageBackground 
+                    source={require('../assets/images/gradient.png')} 
+                    style={{ flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} 
+                    resizeMode="cover" 
+                />
+                
+                {/* Header with Back Button */}
+                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 10, marginTop: 10, marginBottom: 40 }}>
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()}
                         style={{
                             position: 'absolute',
                             left: -10,
-                            padding: 20, // Increased padding for larger touchable area
+                            padding: 20,
                             zIndex: 10,
                         }}
                     >
@@ -93,28 +98,65 @@ export default function RepeatDay() {
                 </View>
 
                 {/* WebView Container */}
-                <View style={{ width: '95%', aspectRatio: 16/9, overflow: 'hidden', alignSelf: 'center' }}>
-                    {!isVideoReady || isVideoPaused ? (
-                        <Image
-                            source={require('../assets/images/bones.png')} // Custom placeholder image
-                            style={{ width: '100%', height: '100%', position: 'absolute', zIndex: 10, objectFit: 'cover' }}
-                        />
-                    ) : null}
-
+                <View style={{ width: '95%', aspectRatio: 16/9, overflow: 'hidden', alignSelf: 'center', position: 'relative' }}>
                     <WebView
-                        ref={webviewRef}  // Reference to the WebView
+                        ref={webviewRef}
                         originWhitelist={['*']}
                         source={{ html: htmlContent }}
                         style={{
                             width: '100%',
                             height: '100%',
-                            opacity: isVideoReady && !isVideoPaused ? 1 : 0,
-                            zIndex: 0,
+                            opacity: isVideoReady ? 1 : 0,
+                            zIndex: 2,
                             borderRadius: 8,
                         }}
                         onLoad={handleVideoLoad}
-                        onMessage={handleWebViewMessage}
                     />
+                </View>
+
+                {/* Stream Stats Section */}
+                <View style={{ padding: 20, marginTop: 20 }}>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', marginBottom: 10 }}>Azul Cam Stats:</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        {/* Resolution Box */}
+                        <View style={{
+                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  // Semi-transparent grey
+                            paddingVertical: 10,
+                            paddingHorizontal: 15,
+                            borderRadius: 8,
+                            alignItems: 'center',
+                            minWidth: 90, // Minimum width for a uniform button-like appearance
+                        }}>
+                            <Text style={{ fontSize: 16, color: 'white' }}>Resolution</Text>
+                            <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{streamStats.resolution}</Text>
+                        </View>
+
+                        {/* FPS Box */}
+                        <View style={{
+                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  // Semi-transparent grey
+                            paddingVertical: 10,
+                            paddingHorizontal: 15,
+                            borderRadius: 8,
+                            alignItems: 'center',
+                            minWidth: 90,
+                        }}>
+                            <Text style={{ fontSize: 16, color: 'white' }}>FPS</Text>
+                            <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{streamStats.fps}</Text>
+                        </View>
+
+                        {/* Bitrate Box */}
+                        <View style={{
+                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  // Semi-transparent grey
+                            paddingVertical: 10,
+                            paddingHorizontal: 15,
+                            borderRadius: 8,
+                            alignItems: 'center',
+                            minWidth: 90,
+                        }}>
+                            <Text style={{ fontSize: 16, color: 'white' }}>Bitrate</Text>
+                            <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{streamStats.bitrate}</Text>
+                        </View>
+                    </View>
                 </View>
             </SafeAreaView>
         </GestureHandlerRootView>
