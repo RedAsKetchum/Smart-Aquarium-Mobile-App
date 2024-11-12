@@ -174,44 +174,6 @@ const fetchSensorData = async () => {
           return <ActivityIndicator size="large" color="#0000ff" />;
         }
 
-        // const handleActivateServo = async (manualValue) => {
-        //   const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
-        
-        //   try {
-        //     // Get the current date and time formatted as 'MM.DD hh:mm A'
-        //     const currentTime = dayjs().format('MM.DD hh:mm A');
-        
-        //     // Loop to activate the servo manualValue times
-        //     for (let i = 0; i < manualValue; i++) {
-        //       // Construct the payload with 'Time' and 'Amount' as JSON strings
-        //       const payload = {
-        //         value: JSON.stringify({
-        //           Type: "Manual",
-        //           action: "activate",  
-        //           Time: currentTime,
-        //           Amount: manualValue
-        //         })
-        //       };
-        
-        //       // Send the POST request with the payload
-        //       await axios.post(url, payload, {
-        //         headers: {
-        //           "X-AIO-Key": AIO_KEY,
-        //           "Content-Type": "application/json"
-        //         }
-        //       });
-        
-        //       console.log(`Servo activation command sent (${i + 1}/${manualValue}) with time and count.`);
-        
-        //       // Delay between activations if needed (e.g., 2 seconds)
-        //       await new Promise(resolve => setTimeout(resolve, 2000));
-        //     }
-        
-        //     console.log(`Servo activated ${manualValue} times with time and count.`);
-        //   } catch (error) {
-        //     console.error("Error sending command:", error);
-        //   }
-        // };
         const handleActivateServo = async (manualValue) => {
           const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
         
@@ -247,36 +209,7 @@ const fetchSensorData = async () => {
             console.error("Error sending command:", error);
           }
         };
-        
-
-        // const handleActivateServo = async (manualValue) => {
-        //   const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY2}/data`;
-      
-        //   try {
-        //     // Loop to activate the servo manualValue times
-        //     for (let i = 0; i < manualValue; i++) {
-        //       await axios.post(url, {
-        //         value: "activate"  // Send the "activate" command
-        //       }, {
-        //         headers: {
-        //           "X-AIO-Key": AIO_KEY,
-        //           "Content-Type": "application/json"
-        //         }
-        //       });
-      
-        //       console.log(`Servo activation command sent (${i + 1}/${manualValue}).`);
-      
-        //       // You can add a delay between activations if needed (e.g., 1 second delay)
-        //       await new Promise(resolve => setTimeout(resolve, 2000)); // 1000 ms = 1 second
-        //     }
-      
-        //     console.log(`Servo activated ${manualValue} times.`);
-        //   } catch (error) {
-        //     console.error("Error sending command:", error);
-        //   }
-        // };
-        
-        
+            
   return (
 
     // HomeScreen General Design
