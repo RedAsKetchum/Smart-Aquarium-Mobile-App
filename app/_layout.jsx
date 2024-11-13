@@ -57,6 +57,9 @@ const RootLayout = () => {
       {/* Edit Schedule Page */}
       <Stack.Screen name="editSchedule" options={{ headerShown: false }} />
 
+      {/* Camera Page */}
+      <Stack.Screen name="camera" options={{ headerShown: false }} />
+
     </Stack>
   );
 };
