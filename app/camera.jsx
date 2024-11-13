@@ -37,7 +37,7 @@ export default function StreamScreen() {
             <body>
                 <iframe 
                     id="video-player"
-                    src="https://www.youtube.com/embed/h4tT30Et_IE?controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&enablejsapi=1&disable-related=1&autoplay=1"
+                    src="https://www.youtube.com/embed/0XYnCMnRoj0?controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&enablejsapi=1&disable-related=1&autoplay=1"
                     frameborder="0" 
                     allow="autoplay; encrypted-media" 
                     allowfullscreen>
@@ -57,7 +57,7 @@ export default function StreamScreen() {
             setStreamStats({
                 resolution: '1920x1080',
                 fps: 30,
-                bitrate: '4000 kbps',
+                bitrate: '6000 kbps',
             });
         };
 
