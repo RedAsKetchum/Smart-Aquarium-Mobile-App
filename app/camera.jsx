@@ -1,59 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, ImageBackground, TouchableOpacity, Dimensions, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, ImageBackground, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { WebView } from 'react-native-webview';
+import CustomButton from '../components/CustomButton';
 
 export default function StreamScreen() {
     const navigation = useNavigation();
-    const webviewRef = useRef(null);
-
-    const [isVideoReady, setIsVideoReady] = useState(false);
     const [streamStats, setStreamStats] = useState({
         resolution: '1920x1080', // API Placeholder
         fps: 30,                 // API Placeholder
         bitrate: '3500 kbps',    // API Placeholder
     });
+    const [showYouTubeEmbed, setShowYouTubeEmbed] = useState(true); // Track which view is shown
 
-    const htmlContent = ` 
-        <html>
-            <head>
-                <style>
-                    body, html {
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
-                    }
-                    iframe {
-                        display: block;
-                        width: 100%;
-                        height: 100%;
-                        border: none;
-                    }
-                </style>
-            </head>
-            <body>
-                <iframe 
-                    id="video-player"
-                    src="https://www.youtube.com/embed/0XYnCMnRoj0?controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&enablejsapi=1&disable-related=1&autoplay=1"
-                    frameborder="0" 
-                    allow="autoplay; encrypted-media" 
-                    allowfullscreen>
-                </iframe>
-            </body>
-        </html>
-    `;
-
-    const handleVideoLoad = () => {
-        setIsVideoReady(true); // Set video to ready when it starts loading
-    };
-
-    // Sample function to simulate fetching stream stats
     useEffect(() => {
         const fetchStreamStats = () => {
-            // Update this logic with actual API calls if available
             setStreamStats({
                 resolution: '1920x1080',
                 fps: 30,
@@ -61,7 +25,6 @@ export default function StreamScreen() {
             });
         };
 
-        // Call initially, and set an interval to fetch updated stats every few seconds
         fetchStreamStats();
         const interval = setInterval(fetchStreamStats, 5000);
 
@@ -69,7 +32,7 @@ export default function StreamScreen() {
     }, []);
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>  
+        <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1, backgroundColor: 'primary' }}>
                 {/* Gradient Background */}
                 <ImageBackground 
@@ -97,35 +60,35 @@ export default function StreamScreen() {
                     </Text>
                 </View>
 
-                {/* WebView Container */}
-                <View style={{ width: '95%', aspectRatio: 16/9, overflow: 'hidden', alignSelf: 'center', position: 'relative' }}>
-                    <WebView
-                        ref={webviewRef}
-                        originWhitelist={['*']}
-                        source={{ html: htmlContent }}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            opacity: isVideoReady ? 1 : 0,
-                            zIndex: 2,
-                            borderRadius: 8,
-                        }}
-                        onLoad={handleVideoLoad}
-                    />
+                {/* Embedded YouTube Stream or WebView */}
+                <View style={{ height: 200, borderRadius: 10, overflow: 'hidden', marginHorizontal: 20 }}>
+                    {showYouTubeEmbed ? (
+                        <WebView 
+                            source={{ uri: 'https://www.youtube.com/embed/s4zwI-HIEyk?controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&enablejsapi=1&disable-related=1&autoplay=1' }}
+                            style={{ flex: 1 }}
+                            allowsFullscreenVideo
+                        />
+                    ) : (
+                        <WebView 
+                            source={{ uri: 'https://www.youtube.com/@MM.MischiefManaged/streams' }}
+                            style={{ flex: 1 }}
+                            allowsFullscreenVideo
+                        />
+                    )}
                 </View>
 
                 {/* Stream Stats Section */}
                 <View style={{ padding: 20, marginTop: 20 }}>
-                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', marginBottom: 10 }}>Azul Cam Stats:</Text>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white', marginBottom: 10 }}>Stream Stats:</Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         {/* Resolution Box */}
                         <View style={{
-                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  // Semi-transparent grey
+                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  
                             paddingVertical: 10,
                             paddingHorizontal: 15,
                             borderRadius: 8,
                             alignItems: 'center',
-                            minWidth: 90, // Minimum width for a uniform button-like appearance
+                            minWidth: 90,
                         }}>
                             <Text style={{ fontSize: 16, color: 'white' }}>Resolution</Text>
                             <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{streamStats.resolution}</Text>
@@ -133,7 +96,7 @@ export default function StreamScreen() {
 
                         {/* FPS Box */}
                         <View style={{
-                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  // Semi-transparent grey
+                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  
                             paddingVertical: 10,
                             paddingHorizontal: 15,
                             borderRadius: 8,
@@ -146,7 +109,7 @@ export default function StreamScreen() {
 
                         {/* Bitrate Box */}
                         <View style={{
-                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  // Semi-transparent grey
+                            backgroundColor: 'rgba(128, 128, 128, 0.3)',  
                             paddingVertical: 10,
                             paddingHorizontal: 15,
                             borderRadius: 8,
@@ -157,6 +120,13 @@ export default function StreamScreen() {
                             <Text style={{ fontSize: 14, color: 'white', fontWeight: 'bold' }}>{streamStats.bitrate}</Text>
                         </View>
                     </View>
+
+                    {/* Button to Switch Views */}
+                    <CustomButton
+                        title={showYouTubeEmbed ? 'Switch Stream' : 'Switch Stream'}
+                        handlePress={() => setShowYouTubeEmbed(!showYouTubeEmbed)}
+                        containerStyles="py-6 px-40 rounded-lg mt-6 mx-auto"
+                    />
                 </View>
             </SafeAreaView>
         </GestureHandlerRootView>
