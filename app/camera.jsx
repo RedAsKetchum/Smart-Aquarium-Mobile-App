@@ -12,9 +12,9 @@ export default function StreamScreen() {
 
     const [isVideoReady, setIsVideoReady] = useState(false);
     const [streamStats, setStreamStats] = useState({
-        resolution: '1920x1080', // Placeholder
-        fps: 30,                 // Placeholder
-        bitrate: '3500 kbps',     // Placeholder
+        resolution: '1920x1080', // API Placeholder
+        fps: 30,                 // API Placeholder
+        bitrate: '3500 kbps',    // API Placeholder
     });
 
     const htmlContent = ` 

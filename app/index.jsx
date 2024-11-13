@@ -17,12 +17,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 
 // ********************* Adafruit IO credentials ***********************/
-const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
-const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
-const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`; 
-const FEED_KEY = 'temperature-sensor';  // Your feed key
-const FEED_KEY2 = 'servo-control';  // Your feed key
+const AIO_USERNAME = 'RedAsKetchum';  
+const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
 const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
+
+// ********************* Feeds *************************/
+const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`; 
+const STEPPER_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/stepper-control/data`;  
+const FEED_KEY = 'temperature-sensor';  
+const FEED_KEY2 = 'servo-control';  
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -85,8 +88,6 @@ export default function App() {
         </View>
       );
   };
-
-  
 
    // Function to fetch the latest sensor data from Adafruit IO
 const fetchSensorData = async () => {
@@ -210,7 +211,37 @@ const fetchSensorData = async () => {
             console.error("Error sending command:", error);
           }
         };
-            
+
+        const handleActivateStepper = async () => {
+          try {
+            await axios.post(
+              STEPPER_CONTROL_FEED,
+              { value: 'activate' },
+              {
+                headers: {
+                  'X-AIO-Key': AIO_KEY,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+            console.log("Stepper motor was activated successfully.");  // Log success message
+          } catch (error) {
+            console.error("Error activating stepper motor:", error);
+            Alert.alert("Error", "Failed to dispense PH tablet.");
+          }
+        };
+      
+        const confirmPHDispense = () => {
+          Alert.alert(
+            "pH Tablet Alert",
+            "Are you sure you want to dispense a tablet?",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Activate", onPress: handleActivateStepper },
+            ]
+          );
+        };
+ 
   return (
 
     // HomeScreen General Design
@@ -350,7 +381,7 @@ const fetchSensorData = async () => {
              {/* Row1 */}
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>           
 
-                {/* Feeding Button */}
+                {/* Food Dispenser Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
                   onPress={async () => {
@@ -381,10 +412,10 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* pH Button */}
+                {/* pH Dispenser Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => console.log('pH button pressed.')}
+                  onPress={() => {confirmPHDispense()}}
                 >
                   <Image
                     source={require('../assets/icons/phButton.png')}  
@@ -395,7 +426,7 @@ const fetchSensorData = async () => {
               {/* Row 2 */}
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
                 
-                {/* Light Button*/}
+                {/* LED ON/OFF Button*/}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}
                   onPress={() => debugToggleLED(isLightOn, setIsLightOn)} // Call the toggleLED function here
@@ -406,7 +437,7 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Calendar Button */}
+                {/* Schedule Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 90, borderRadius: 55, marginHorizontal: 40, justifyContent: 'center', alignItems: 'center' }}
                   onPress={() => router.push('/schedulePage')}
@@ -417,7 +448,7 @@ const fetchSensorData = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* LED Strip Button */}
+                {/* LED MENU Button */}
                 <TouchableOpacity
                   style={{ width: 90, height: 80, borderRadius: 40,justifyContent: 'center', alignItems: 'center' }}
                   onPress={() => router.push('/ledSetting')}
