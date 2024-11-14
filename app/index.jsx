@@ -370,7 +370,7 @@ const fetchSensorData = async () => {
         <BottomSheet
           ref={sheetRef}
           index={1}
-          
+
           snapPoints={snapPoints}
           handleComponent={CustomHandle}
           backgroundStyle={styles.bottomSheetBackground}
