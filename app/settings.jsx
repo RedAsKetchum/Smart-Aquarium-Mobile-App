@@ -60,7 +60,7 @@ const settings = () => {
     
     // Function to send reboot command to Adafruit IO
     const sendRebootCommand = async () => {
-      try {F
+      try {
         const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
           method: 'POST',
           headers: {
