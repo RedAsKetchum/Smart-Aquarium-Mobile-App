@@ -73,12 +73,15 @@ export default function App() {
   const snapPoints = ['18%', '32%'];
   const [temperatureSensor, setTemperatureSensor] = useState(-1);
   const [pHSensor, setpHSensor] = useState(-1);
-  const [turbiditySensor, setTurbidity] = useState(-1);
+  const [turbiditySensor, setTurbidity] = useState(-1); //sets Turbidity Voltage
+  const [turbidityLabel, setTurbidityLabel] = useState('');  //sets Turbidity Status label: Clean, Murky or Dark                       
   const [loading, setLoading] = useState(true);
   const [isLightOn, setIsLightOn] = useState(true);  // State to track LED status
   const temperatureInFahrenheit = (temperatureSensor);
+  
   const maxGauge = 100; // Max value of the gauge
   const maxpHGauge = 14; // Max value of the pH gauge
+  const maxTurbidityGauge = 3.3;
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -137,9 +140,19 @@ const fetchSensorData = async () => {
       if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
         const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
         if (!isNaN(sensorValue3)) {
+
           // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
           setTurbidity(sensorValue3);  // Update state with the numeric value
 
+          // Determine the label based on the value of sensorValue3
+          if (sensorValue3 >= 3.2) {
+            setTurbidityLabel('Clean');
+          } else if (sensorValue3 >= 2.5 && sensorValue3 < 3.2) {
+            setTurbidityLabel('Murky');
+          } else {
+            setTurbidityLabel('Dark');
+          }
+          
         } else {
           console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
           // Optionally, handle invalid Sensor3 data here
@@ -283,7 +296,6 @@ const fetchSensorData = async () => {
 
              <Text className="text-white text-2xl font-bold -mt-5 mb-2">Status</Text>
 
-                 {/* Gauge using nativewind */}
                  <StyledView className="flex-row justify-between items-center">
                   {/*pH Gauge*/}
                   <StyledView className="items-center">
@@ -319,7 +331,7 @@ const fetchSensorData = async () => {
                   <AnimatedCircularProgress
                     size={150}
                     width={20}
-                    fill={(turbiditySensor  / maxGauge) * 100} 
+                    fill={(turbiditySensor  / maxTurbidityGauge) * 100} //Max is 3.3V
                     tintColor="#9933ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -330,7 +342,10 @@ const fetchSensorData = async () => {
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
                         <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#9933ff' }}>
-                          {turbiditySensor.toFixed(0)}
+
+                          {/* {turbiditySensor.toFixed(0)}  */}
+                          {turbidityLabel} {/* Clean, Murky, or Dark */}  
+
                         </StyledText>
                       </StyledView>
                     )}
