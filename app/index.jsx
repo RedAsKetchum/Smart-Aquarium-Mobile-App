@@ -249,10 +249,33 @@ const fetchSensorData = async () => {
       <SafeAreaView className="bg-primary h-full">
       <StatusBar backgroundColor="#161622" style="dark" />
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        <ScrollView contentContainerStyle={{ height: '100%' }}>
-          <View className="w-full min-[85vh] px-3">
+      
+        <View className="w-full min-[85vh] px-3">
+
+        {/* Bell Button at the top */}
+        <View className="flex-row justify-center items-center px-3 pt-0">
+
+          <View className="flex-1" />
+
+          <View className="items-center">
             <Text className="text-2xl font-bold text-white text-center">{dayName}</Text>
-            <Text className="text-xl font-semibold text-white text-center pl-2">{monthAndDay}</Text>
+            <Text className="text-xl font-semibold text-white text-center">{monthAndDay}</Text>
+          </View>
+
+          <View className="flex-1 items-end">
+          <TouchableOpacity onPress={() => router.push('/notification')} className="ml-2">
+            <Image
+              source={require('../assets/icons/bell.png')}
+              style={{
+                width: 30, 
+                height: 30,
+                zIndex: 10, // Ensure it's on top of other views
+              }}
+            />
+          </TouchableOpacity>
+          </View>
+        </View>
+            
             <View className="relative mt-5">
 
              {/* AQUARIUM'S STATUS PANEL*/}
@@ -364,8 +387,7 @@ const fetchSensorData = async () => {
 
             </View>
           </View>
-        </ScrollView>
-
+        
         {/* BOTTOM SHEET Properties */}
         <BottomSheet
           ref={sheetRef}
