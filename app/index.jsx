@@ -300,8 +300,8 @@ const fetchSensorData = async () => {
                     >
                       {() => (
                         <StyledView className="items-center justify-center" style={{height:80 }} >
-                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
-                            {pHSensor.toFixed(2)} 
+                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 24, color: '#ff1a1a' }}>
+                            {pHSensor.toFixed(1)} 
                           </StyledText>
                         </StyledView>
                       )}
@@ -312,14 +312,14 @@ const fetchSensorData = async () => {
                     </StyledView>
                   </StyledView>
                   
-                  {/*Temperature Gauge*/}
+                  {/*Turbidity Gauge*/}
                   <StyledView className="items-center">
                    {/*Temperature Gauge*/}
                    <StyledView className="mx-2"> 
                   <AnimatedCircularProgress
                     size={150}
                     width={20}
-                    fill={(temperatureInFahrenheit / maxGauge) * 100}
+                    fill={(turbiditySensor  / maxGauge) * 100} 
                     tintColor="#9933ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -330,7 +330,7 @@ const fetchSensorData = async () => {
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
                         <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#9933ff' }}>
-                          {temperatureInFahrenheit.toFixed(0)}°F
+                          {turbiditySensor.toFixed(0)}
                         </StyledText>
                       </StyledView>
                     )}
@@ -338,16 +338,16 @@ const fetchSensorData = async () => {
                   </StyledView>
                     {/* Small box below the gauge for pH level */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
-                      <StyledText className="text-black font-semibold">Temperature</StyledText>
+                      <StyledText className="text-black font-semibold">Turbidity</StyledText>
                     </StyledView>
                   </StyledView>
 
-                  {/*Turbidity Gauge*/}
+                  {/*Temp Gauge*/}
                   <StyledView className="items-center">
                     <AnimatedCircularProgress
                       size={110}
                       width={20}
-                      fill={(turbiditySensor / maxGauge) * 100}
+                      fill={(temperatureInFahrenheit / maxGauge) * 100}
                       tintColor="#1a53ff"
                       backgroundColor="#d3d3d3"
                       lineCap="round"
@@ -357,15 +357,15 @@ const fetchSensorData = async () => {
                     >
                       {() => (
                         <StyledView className="items-center justify-center" style={{height:80 }} >
-                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
-                            {turbiditySensor.toFixed(0)}
+                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 24, color: '#1a53ff' }}>
+                            {temperatureInFahrenheit.toFixed(0)}°F
                           </StyledText>
                         </StyledView>
                       )}
                     </AnimatedCircularProgress>
                     {/* Small box below the gauge for Turbidity */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
-                      <StyledText className="text-black font-semibold">Turbidity</StyledText>
+                      <StyledText className="text-black font-semibold">Temperature</StyledText>
                     </StyledView>
                   </StyledView>
                 </StyledView>
