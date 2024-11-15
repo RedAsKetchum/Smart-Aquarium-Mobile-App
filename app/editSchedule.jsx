@@ -24,6 +24,8 @@ export default function EditSchedule() {
     const [device, setDevice] = useState(selectedDevice);
     const [scheduledValue, setScheduledValue] = useState(1);
     const [scheduleId, setScheduleId] = useState(id);
+
+    console.log('Inside Edit Schedule isEditMode:', isEditMode);
     
     useEffect(() => {
         if (id) {
@@ -186,14 +188,15 @@ export default function EditSchedule() {
                             <Text style={{ fontSize: 17,  color: 'white', marginLeft: 10}}>Repeat Day</Text>
                                 <TouchableOpacity  
                                     onPress={() => router.push({ 
-                                        pathname: './repeatDay', 
+                                        pathname: 'repeatDay',  
                                         params: { 
-                                            id,
+                                            id: id || '', 
                                             selectedDays: selectedDaysState.join(','), 
                                             selectedTime: date.toISOString(),
-                                            isEditMode,
+                                            isEditMode: isEditMode ? 'true' : 'false',  // Convert to string
                                             selectedDevice: device,
-                                        }})}  
+                                        }
+                                    })}                                    
                                     style={{flexDirection: 'row',padding: 10}}>
                                     <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{formatSelectedDays()}</Text>
                                     <Icon 
@@ -228,14 +231,14 @@ export default function EditSchedule() {
                                 onValueChange={(itemValue) => setDevice(itemValue)}
                                 style={{ width: '100%' }}
                             >
-                                <Picker.Item label="LED" value="LED" />
-                                <Picker.Item label="Feeder" value="Feeder" />
+                                <Picker.Item label="LED" value="LED" color="black" />  
+                                <Picker.Item label="Feeder" value="Feeder" color="black" />
                             </Picker>
                             <TouchableOpacity onPress={() => setPickerVisible(false)}>
                                 <Text style={{ color: 'blue', marginTop: 10, textAlign: 'right' }}>Done</Text>
                             </TouchableOpacity>
                         </View>
-                        </View>
+                    </View>
                 </Modal>
                     </View>
                     <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]} 

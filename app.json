@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/bones.png",
-    "scheme": "AquariumApp",
+    "scheme": "aquariumapp",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/bones.png",
@@ -24,8 +24,7 @@
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
-      ],
-      "hermes": false
+      ]
     },
     "web": {
       "bundler": "metro",
