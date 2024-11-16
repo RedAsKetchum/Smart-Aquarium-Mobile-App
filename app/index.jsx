@@ -19,7 +19,9 @@ import dayjs from 'dayjs';
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
-const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
+//const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
+const AIO_ENDPOINT = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/temperature-sensor/data/last?X-AIO-Key=aio_FXeu11JxZcmPv3ey6r4twxbIyrfH";
+
 
 // ********************* Feeds *************************/
 const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`; 
@@ -83,6 +85,8 @@ export default function App() {
   const maxpHGauge = 14; // Max value of the pH gauge
   const maxTurbidityGauge = 3.3;
 
+  
+
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
       return (
@@ -95,9 +99,18 @@ export default function App() {
    // Function to fetch the latest sensor data from Adafruit IO
 const fetchSensorData = async () => {
   try {
+    // const response = await fetch(AIO_ENDPOINT);
+    // const data = await response.json();
+    // console.log('Latest feed data:', data);
+
     const response = await fetch(AIO_ENDPOINT);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
     const data = await response.json();
-    //console.log('Latest feed data:', data);
+    console.log('Latest feed data:', data);
 
     if (data.value) {
       const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
@@ -122,8 +135,8 @@ const fetchSensorData = async () => {
         const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
         if (!isNaN(sensorValue2)) {
           // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
-          setpHSensor(sensorValue2);  // Update state with the numeric value
-          //setpHSensor(7.20);
+          //setpHSensor(sensorValue2);  // Update state with the numeric value
+          //setpHSensor(-1);
 
         } else {
           console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
@@ -142,7 +155,8 @@ const fetchSensorData = async () => {
         if (!isNaN(sensorValue3)) {
 
           // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
-          setTurbidity(sensorValue3);  // Update state with the numeric value
+          //setTurbidity(sensorValue3);  // Update state with the numeric value
+          //setTurbidity(1);
 
           // Determine the label based on the value of sensorValue3
           if (sensorValue3 >= 3.2) {
