@@ -34,6 +34,49 @@ export default function EditSchedule() {
     }, [id]);
 
     useEffect(() => {
+        console.log("Received selectedTime:", selectedTime);  // Log the initial format of selectedTime
+        
+        if (selectedTime) {
+            // Try parsing in 12-hour format (e.g., "02:21 PM")
+            let timeParts = selectedTime.match(/(\d+):(\d+)\s?(AM|PM)/i);
+            if (timeParts) {
+                let hours = parseInt(timeParts[1], 10);
+                const minutes = parseInt(timeParts[2], 10);
+                const ampm = timeParts[3].toUpperCase();
+    
+                if (ampm === 'PM' && hours < 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+    
+                const today = new Date();
+                today.setHours(hours);
+                today.setMinutes(minutes);
+                today.setSeconds(0);
+                today.setMilliseconds(0);
+    
+                setDate(today);
+                return;
+            }
+    
+            // Try parsing in ISO 8601 format (e.g., "2024-11-12T19:21:00.000Z")
+            const isoDate = new Date(selectedTime);
+            if (!isNaN(isoDate.getTime())) {
+                setDate(isoDate);
+                return;
+            }
+    
+            // Log error if neither format is recognized
+            console.error("Invalid date format for selectedTime:", selectedTime);
+        }
+    }, [selectedTime]);
+    
+    useEffect(() => {
+        if (selectedDays) {
+            setSelectedDaysState(selectedDays.split(',')); // Set `selectedDaysState` based on the passed `selectedDays`
+        }
+    }, [selectedDays]);
+    
+    
+    useEffect(() => {
         // Load scheduledValue from AsyncStorage if it exists
         const loadScheduledValue = async () => {
             try {

@@ -70,6 +70,8 @@ const ColorPickerComponent = () => {
   };
 
   useEffect(() => {
+    
+  
     const fetchSavedSettings = async () => {
       try {
         const response = await fetch(LED_CONTROL_FEED, {
@@ -80,45 +82,44 @@ const ColorPickerComponent = () => {
         });
         const data = await response.json();
         if (data.length > 0) {
+          console.log("Fetched data from Adafruit IO:", data[0].value);
           const [r, g, b, brightnessValue, savedValue] = data[0].value.split(',');
           const savedColor = rgbToHex(Number(r), Number(g), Number(b));
           const savedBrightness = Number(brightnessValue);
-          
+  
           setSelectedColor(savedColor);
           setBrightness(savedBrightness);
           setIsLedOn(savedBrightness > 0);
-
-          // Store the initial values for reverting later
           setInitialColor(savedColor);
           setInitialBrightness(savedBrightness);
           setIsSaved(savedValue === 'SAVED');
         } else {
-          // Set default values if no saved settings are available
           setSelectedColor('#00ff00');
           setBrightness(1);
           setIsLedOn(true);
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
-        // Set default values in case of an error
         setSelectedColor('#00ff00');
         setBrightness(1);
         setIsLedOn(true);
+      } finally {
+        setIsInitialLoad(false); // Mark initial load as complete
       }
     };
-
+  
     const client = new Client('wss://io.adafruit.com/mqtt', `mqtt-client-${Date.now()}`);
     client.onConnectionLost = (responseObject) => {
       if (responseObject.errorCode !== 0) {
         console.log('Connection lost:', responseObject.errorMessage);
       }
     };
-
+  
     client.onMessageArrived = (message) => {
       console.log('Message arrived:', message.payloadString);
     };
-
-    const initializeMqtt = () => {
+  
+    const initializeMqtt = async () => {
       client.connect({
         useSSL: true,
         userName: AIO_USERNAME,
@@ -126,8 +127,7 @@ const ColorPickerComponent = () => {
         onSuccess: async () => {
           console.log('Connected to Adafruit IO via MQTT');
           setMqttClient(client);
-
-          // Fetch saved settings before sending default values
+          // Fetch saved settings after establishing MQTT connection
           await fetchSavedSettings();
         },
         onFailure: (err) => {
@@ -135,25 +135,26 @@ const ColorPickerComponent = () => {
         },
       });
     };
-
-    // Initialize MQTT and fetch settings in order
+  
     initializeMqtt();
-
+  
     return () => {
       if (client.isConnected()) {
         client.disconnect();
       }
     };
   }, []);
-
+  
   const sendColorAndBrightnessToESP32 = (color, brightness) => {
+    if (isInitialLoad || !mqttClient) return; // Ensure MQTT client is connected and not during initial load
+  
     const rgb = hexToRgb(color);
-    if (rgb && mqttClient) {
+    if (rgb) {
       const { r, g, b } = rgb;
       const adjustedR = Math.round(r * brightness);
       const adjustedG = Math.round(g * brightness);
       const adjustedB = Math.round(b * brightness);
-
+  
       const controlMessage = `${adjustedR},${adjustedG},${adjustedB},${brightness}`;
       const message = new Message(controlMessage);
       message.destinationName = ESP32_MQTT_TOPIC_COLOR;
@@ -162,7 +163,8 @@ const ColorPickerComponent = () => {
       setIsLedOn(brightness > 0);
     }
   };
-
+  
+  
   const saveToAdafruitIO = async (color, brightness) => {
     const rgb = hexToRgb(color);
     const controlMessage = `${rgb.r},${rgb.g},${rgb.b},${brightness},SAVED`;  // Add "SAVED" as an indicator

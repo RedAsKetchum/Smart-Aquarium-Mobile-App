@@ -59,9 +59,6 @@ const RootLayout = () => {
 
       {/* Camera Page */}
       <Stack.Screen name="camera" options={{ headerShown: false }} />
-      
-     
-
 
     </Stack>
   );
