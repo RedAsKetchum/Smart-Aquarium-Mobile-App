@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, SafeAreaView, TouchableOpacity, ImageBackground, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, TouchableOpacity, ImageBackground, ActivityIndicator, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
 import TemperatureIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TurbidityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PHIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -25,121 +25,197 @@ const formatTimestamp = (timestamp) => {
 };
 
 const RenderNotification = ({ item, onDelete, openSwipeRef }) => {
-  const swipeableRef = useRef(null);
+  const translateX = useRef(new Animated.Value(0)).current; // Animation for swipe
+  const panRef = useRef(null);
 
-  const renderRightActions = () => (
-    <TouchableOpacity
-      onPress={() => {
-        onDelete(item.id);
-        swipeableRef.current.close(); // Close the swipe after deleting
-      }}
-      style={{
-        backgroundColor: 'red',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-        width: 100,
-      }}
-    >
-      <Text style={{ color: 'white', fontWeight: 'bold' }}>Delete</Text>
-    </TouchableOpacity>
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
   );
+
+  const onHandlerStateChange = ({ nativeEvent }) => {
+    if (nativeEvent.state === 5) {
+      // If the swipe is large enough, delete the item
+      if (nativeEvent.translationX < -100) {
+        onDelete(item.id);
+      } else {
+        // Reset swipe position
+        Animated.timing(translateX, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    }
+  };
 
   return (
-    <Swipeable
-      ref={swipeableRef}
-      renderRightActions={renderRightActions}
-      onSwipeableWillOpen={() => {
-        // Close any other open swipeable item
-        if (openSwipeRef.current && openSwipeRef.current !== swipeableRef.current) {
-          openSwipeRef.current.close();
-        }
-        openSwipeRef.current = swipeableRef.current;
-      }}
-      onSwipeableClose={() => {
-        if (openSwipeRef.current === swipeableRef.current) {
-          openSwipeRef.current = null;
-        }
+    <View style={{ position: 'relative', marginBottom: 12, borderRadius: 8 }}>
+    {/* Background with "Delete" text */}
+    <View
+      style={{
+        position: 'absolute',
+        top: '50%',
+        right: 16,
+        transform: [{ translateY: -12 }], // Center vertically (adjust translateY based on new height)
+        backgroundColor: 'red',
+        paddingVertical: 8, 
+        paddingHorizontal: 15,
+        borderRadius: 4,
       }}
     >
-      <View>
-        {item.value.includes("temperature") && (
-          <View style={{ padding: 16, backgroundColor: 'white', borderRadius: 8, margin: 12, shadowOpacity: 0.1, flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 18, color: 'black' }}>{formatTimestamp(item.created_at)}</Text>
+      <Text
+        style={{
+          color: 'white',
+          fontSize: 18,
+          fontWeight: 'bold',
+        }}
+      >
+        Delete
+      </Text>
+    </View>
+    <PanGestureHandler
+      ref={panRef}
+      onGestureEvent={onGestureEvent}
+      onHandlerStateChange={onHandlerStateChange}
+    >
+      <Animated.View
+        style={{
+          transform: [{ translateX }],
+          backgroundColor: 'white',
+          borderRadius: 8,
+          margin: 12,
+          shadowOpacity: 0.1,
+        }}
+      >
+        <View>
+          {item.value.includes('temperature') && (
+            <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 18, color: 'black' }}>{formatTimestamp(item.created_at)}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
+                <TemperatureIcon name="thermometer" size={18} color="#ff1a1a" />
+                <Text style={{ color: 'black', fontSize: 16, marginLeft: 8 }}>{`${item.value}`}</Text>
+              </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
-              <TemperatureIcon name="thermometer" size={18} color="#ff1a1a" />
-              <Text style={{ color: 'black', fontSize: 16, marginLeft: 8 }}>{`${item.value}`}</Text>
-            </View>
-          </View>
-        )}
+          )}
 
-        {item.value.includes("turbidity") && (
-          <View style={{ padding: 16, backgroundColor: 'white', borderRadius: 8, margin: 12, shadowOpacity: 0.1, flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 18, color: 'black' }}>{formatTimestamp(item.created_at)}</Text>
+          {item.value.includes('turbidity') && (
+            <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 18, color: 'black' }}>{formatTimestamp(item.created_at)}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
+                <TurbidityIcon name="water" size={18} color="#2489FD" />
+                <Text style={{ color: 'black', fontSize: 16, marginLeft: 8 }}>{`${item.value}`}</Text>
+              </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
-              <TurbidityIcon name="water" size={18} color="#2489FD" />
-              <Text style={{ color: 'black', fontSize: 16, marginLeft: 8 }}>{`${item.value}`}</Text>
-            </View>
-          </View>
-        )}
+          )}
 
-        {item.value.includes("pH") && (
-          <View style={{ padding: 16, backgroundColor: 'white', borderRadius: 8, margin: 12, shadowOpacity: 0.1, flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 18, color: 'black' }}>{formatTimestamp(item.created_at)}</Text>
+          {item.value.includes('pH') && (
+            <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 18, color: 'black' }}>{formatTimestamp(item.created_at)}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
+                <PHIcon name="test-tube" size={18} color="#9933ff" />
+                <Text style={{ color: 'black', fontSize: 16, marginLeft: 8 }}>{`${item.value}`}</Text>
+              </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
-              <PHIcon name="test-tube" size={18} color="#9933ff" />
-              <Text style={{ color: 'black', fontSize: 16, marginLeft: 8 }}>{`${item.value}`}</Text>
-            </View>
-          </View>
-        )}
-      </View>
-    </Swipeable>
+          )}
+        </View>
+      </Animated.View>
+    </PanGestureHandler>
+    </View>
   );
 };
-
 export default function NotificationPage() {
   const [notificationData, setNotificationData] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const openSwipeRef = useRef(null);
+  const [lastFetchedTimestamp, setLastFetchedTimestamp] = useState(null); 
 
-  const fetchNotificationData = async () => {
-    setLoading(true);
+  const fetchLatestData = async () => {
     try {
-      const response = await fetch(SENSOR_FEED_URL, {
-        headers: {
-          'X-AIO-Key': AIO_KEY,
-        },
-      });
-      const data = await response.json();
+        const response = await fetch(`${SENSOR_FEED_URL}?limit=1`, {
+            headers: { 'X-AIO-Key': AIO_KEY },
+        });
+        const [latestData] = await response.json();
 
-      const formattedData = data.map((item, index) => ({
-        id: index, // Unique ID for each item
-        value: item.value,
-        created_at: item.created_at,
-      }));
+        const latestTimestamp = new Date(latestData.created_at);
 
-      setNotificationData(formattedData);
+        // Check if the fetched timestamp is newer
+        if (!lastFetchedTimestamp || latestTimestamp > lastFetchedTimestamp) {
+            setLastFetchedTimestamp(latestTimestamp); // Update the timestamp
+            fetchNotificationData(); // Fetch the full dataset or handle new data
+        }
     } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
+        console.error('Error fetching latest data:', error);
     }
-  };
+};
 
-  const handleDelete = (id) => {
+const fetchNotificationData = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch(SENSOR_FEED_URL, {
+      headers: {
+        'X-AIO-Key': AIO_KEY,
+      },
+    });
+    const data = await response.json();
+
+    const formattedData = data.map((item) => ({
+      id: item.id, // Adafruit IO's unique ID for the data point
+      value: item.value,
+      created_at: item.created_at,
+    }));
+
+    setNotificationData(formattedData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleDelete = async (id) => {
+  try {
+    // Find the notification by ID
+    const notificationToDelete = notificationData.find((item) => item.id === id);
+    if (!notificationToDelete) {
+      console.error('Notification not found.');
+      return;
+    }
+
+    const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${SENSOR_FEED_KEY}/data/${notificationToDelete.id}`;
+
+    // Send DELETE request
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'X-AIO-Key': AIO_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      const errorDetails = await response.text(); // Fetch error details
+      throw new Error(`Failed to delete notification: ${response.status} - ${errorDetails}`);
+    }
+
+    console.log(`Notification with ID ${notificationToDelete.id} deleted successfully.`);
     setNotificationData((prevData) => prevData.filter((item) => item.id !== id));
-  };
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+  }
+};
 
   useEffect(() => {
+    const interval = setInterval(fetchLatestData, 30000);
     fetchNotificationData();
-  }, []);
+    return () => clearInterval(interval); 
+}, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
