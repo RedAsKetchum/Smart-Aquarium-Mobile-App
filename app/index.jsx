@@ -21,7 +21,9 @@ import dayjs from 'dayjs';
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  
 const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
-const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
+//const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
+const AIO_ENDPOINT = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/temperature-sensor/data/last?X-AIO-Key=aio_FXeu11JxZcmPv3ey6r4twxbIyrfH";
+
 
 // ********************* Feeds *************************/
 const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`; 
@@ -75,12 +77,17 @@ export default function App() {
   const snapPoints = ['18%', '32%'];
   const [temperatureSensor, setTemperatureSensor] = useState(-1);
   const [pHSensor, setpHSensor] = useState(-1);
-  const [turbiditySensor, setTurbidity] = useState(-1);
+  const [turbiditySensor, setTurbidity] = useState(-1); //sets Turbidity Voltage
+  const [turbidityLabel, setTurbidityLabel] = useState('');  //sets Turbidity Status label: Clean, Murky or Dark                       
   const [loading, setLoading] = useState(true);
   const [isLightOn, setIsLightOn] = useState(true);  // State to track LED status
   const temperatureInFahrenheit = (temperatureSensor);
+  
   const maxGauge = 100; // Max value of the gauge
   const maxpHGauge = 14; // Max value of the pH gauge
+  const maxTurbidityGauge = 3.3;
+
+  
 
   // Custom handle component with a centered indicator bar
   const CustomHandle = () => {
@@ -94,9 +101,18 @@ export default function App() {
    // Function to fetch the latest sensor data from Adafruit IO
 const fetchSensorData = async () => {
   try {
+    // const response = await fetch(AIO_ENDPOINT);
+    // const data = await response.json();
+    // console.log('Latest feed data:', data);
+
     const response = await fetch(AIO_ENDPOINT);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
     const data = await response.json();
-    //console.log('Latest feed data:', data);
+    console.log('Latest feed data:', data);
 
     if (data.value) {
       const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
@@ -121,8 +137,8 @@ const fetchSensorData = async () => {
         const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
         if (!isNaN(sensorValue2)) {
           // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
-          setpHSensor(sensorValue2);  // Update state with the numeric value
-          //setpHSensor(7.20);
+          //setpHSensor(sensorValue2);  // Update state with the numeric value
+          setpHSensor(7.2);
 
         } else {
           console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
@@ -139,9 +155,22 @@ const fetchSensorData = async () => {
       if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
         const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
         if (!isNaN(sensorValue3)) {
-          // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
-          setTurbidity(sensorValue3);  // Update state with the numeric value
 
+          // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
+          //setTurbidity(sensorValue3);  // Update state with the numeric value
+          setTurbidity(3.3);
+
+          // Determine the label based on the value of sensorValue3
+          // if (sensorValue3 >= 3.2) {
+          //   setTurbidityLabel('Clean');
+          // } else if (sensorValue3 >= 2.5 && sensorValue3 < 3.2) {
+          //   setTurbidityLabel('Murky');
+          // } else {
+          //   setTurbidityLabel('Dark');
+          // }
+
+          setTurbidityLabel('Clean');
+          
         } else {
           console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
           // Optionally, handle invalid Sensor3 data here
@@ -251,10 +280,33 @@ const fetchSensorData = async () => {
       <SafeAreaView className="bg-primary h-full">
       <StatusBar backgroundColor="#161622" style="dark" />
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
-        <ScrollView contentContainerStyle={{ height: '100%' }}>
-          <View className="w-full min-[85vh] px-3">
+      
+        <View className="w-full min-[85vh] px-3">
+
+        {/* Bell Button at the top */}
+        <View className="flex-row justify-center items-center px-3 pt-0">
+
+          <View className="flex-1" />
+
+          <View className="items-center">
             <Text className="text-2xl font-bold text-white text-center">{dayName}</Text>
-            <Text className="text-xl font-semibold text-white text-center pl-2">{monthAndDay}</Text>
+            <Text className="text-xl font-semibold text-white text-center">{monthAndDay}</Text>
+          </View>
+
+          <View className="flex-1 items-end">
+          <TouchableOpacity onPress={() => router.push('/notification')} className="ml-2">
+            <Image
+              source={require('../assets/icons/bell.png')}
+              style={{
+                width: 30, 
+                height: 30,
+                zIndex: 10, // Ensure it's on top of other views
+              }}
+            />
+          </TouchableOpacity>
+          </View>
+        </View>
+            
             <View className="relative mt-5">
 
              {/* AQUARIUM'S STATUS PANEL*/}
@@ -262,7 +314,6 @@ const fetchSensorData = async () => {
 
              <Text className="text-white text-2xl font-bold -mt-5 mb-2">Status</Text>
 
-                 {/* Gauge using nativewind */}
                  <StyledView className="flex-row justify-between items-center">
                   {/*pH Gauge*/}
                   <StyledView className="items-center">
@@ -279,8 +330,8 @@ const fetchSensorData = async () => {
                     >
                       {() => (
                         <StyledView className="items-center justify-center" style={{height:80 }} >
-                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#ff1a1a' }}>
-                            {pHSensor.toFixed(2)} 
+                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 24, color: '#ff1a1a' }}>
+                            {pHSensor.toFixed(1)} 
                           </StyledText>
                         </StyledView>
                       )}
@@ -291,14 +342,14 @@ const fetchSensorData = async () => {
                     </StyledView>
                   </StyledView>
                   
-                  {/*Temperature Gauge*/}
+                  {/*Turbidity Gauge*/}
                   <StyledView className="items-center">
                    {/*Temperature Gauge*/}
                    <StyledView className="mx-2"> 
                   <AnimatedCircularProgress
                     size={150}
                     width={20}
-                    fill={(temperatureInFahrenheit / maxGauge) * 100}
+                    fill={(turbiditySensor  / maxTurbidityGauge) * 100} //Max is 3.3V
                     tintColor="#9933ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"
@@ -309,7 +360,10 @@ const fetchSensorData = async () => {
                     {() => (
                       <StyledView className="items-center justify-center" style={{height:80 }} >
                         <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#9933ff' }}>
-                          {temperatureInFahrenheit.toFixed(0)}°F
+
+                          {/* {turbiditySensor.toFixed(0)}  */}
+                          {turbidityLabel} {/* Clean, Murky, or Dark */}  
+
                         </StyledText>
                       </StyledView>
                     )}
@@ -317,16 +371,16 @@ const fetchSensorData = async () => {
                   </StyledView>
                     {/* Small box below the gauge for pH level */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
-                      <StyledText className="text-black font-semibold">Temperature</StyledText>
+                      <StyledText className="text-black font-semibold">Turbidity</StyledText>
                     </StyledView>
                   </StyledView>
 
-                  {/*Turbidity Gauge*/}
+                  {/*Temp Gauge*/}
                   <StyledView className="items-center">
                     <AnimatedCircularProgress
                       size={110}
                       width={20}
-                      fill={(turbiditySensor / maxGauge) * 100}
+                      fill={(temperatureInFahrenheit / maxGauge) * 100}
                       tintColor="#1a53ff"
                       backgroundColor="#d3d3d3"
                       lineCap="round"
@@ -336,15 +390,15 @@ const fetchSensorData = async () => {
                     >
                       {() => (
                         <StyledView className="items-center justify-center" style={{height:80 }} >
-                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 28, color: '#1a53ff' }}>
-                            {turbiditySensor.toFixed(0)}
+                          <StyledText className="font-bold text-lg text-black" style={{ fontSize: 24, color: '#1a53ff' }}>
+                            {temperatureInFahrenheit.toFixed(0)}°F
                           </StyledText>
                         </StyledView>
                       )}
                     </AnimatedCircularProgress>
                     {/* Small box below the gauge for Turbidity */}
                     <StyledView className="mt-0 px-2 py-1 bg-gray-200 rounded">
-                      <StyledText className="text-black font-semibold">Turbidity</StyledText>
+                      <StyledText className="text-black font-semibold">Temperature</StyledText>
                     </StyledView>
                   </StyledView>
                 </StyledView>
@@ -366,8 +420,7 @@ const fetchSensorData = async () => {
 
             </View>
           </View>
-        </ScrollView>
-
+        
         {/* BOTTOM SHEET Properties */}
         <BottomSheet
           ref={sheetRef}
