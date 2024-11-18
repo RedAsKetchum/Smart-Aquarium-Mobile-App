@@ -36,16 +36,92 @@ const ColorPickerComponent = () => {
   const [initialBrightness, setInitialBrightness] = useState(1); 
   const [isSaved, setIsSaved] = useState(true); 
   const [isLedOn, setIsLedOn] = useState(true); 
-
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const colorSwatches = [
-    '#FFFFFF', '#E0E0E0', '#C0C0C0', '#A0A0A0', '#808080', '#606060', '#404040', '#202020', '#000000',
-    '#A2CBEA', '#8496C8', '#8463A7', '#844486', '#A31F44', '#D12D25', '#E3691D', '#F5A721', '#F9E71D',
-    '#BCE228', '#7FBF29', '#39A93B', '#28976F', '#2883A4', '#2880B9', '#28B6D8', '#88CCDD', '#CCF0E1',
-    '#94C1EC', '#7277DA', '#B34FB3', '#A83462', '#FF0038', '#FE6600', '#FFB000', '#FFD700', '#FFFF00',
-    '#C1EA7E', '#88C86E', '#6BAA5C', '#6E9C60', '#4D7C8B', '#28547C', '#003E6A', '#004376', '#6AB4C8',
-    '#DAE7E7', '#A3BBFF', '#C1A0FF', '#FF4DA6', '#FF3333', '#FF6600', '#FF9966', '#FFCC99', '#FFFFCC',
-    '#FFFFE0', '#E5FFCC', '#CCFFCC', '#99FFCC', '#66FFCC', '#66FFFF', '#99FFFF', '#CCFFFF', '#FF0000'
+    // Whites, Grays, and Blacks
+    '#FFFFFF',
+    '#E0E0E0',
+    '#C0C0C0',
+    '#A0A0A0',
+    '#808080',
+    '#606060',
+    '#404040',
+    '#202020',
+    '#000000',
+  
+    // Blues
+    '#A2CBEA',
+    '#94C1EC',
+    '#88CCDD',
+    '#6AB4C8',
+    '#2883A4',
+    '#2880B9',
+    '#28B6D8',
+    '#28547C',
+    '#004376',
+    '#003E6A',
+  
+    // Purples
+    '#8496C8',
+    '#C1A0FF',
+    '#8463A7',
+    '#7277DA',
+    '#B34FB3',
+    '#844486',
+  
+    // Reds
+    '#FF0000',
+    '#FF0038',
+    '#A31F44',
+    '#D12D25',
+    '#FF3333',
+    '#A83462',
+  
+    // Oranges
+    '#FE6600',
+    '#FF6600',
+    '#E3691D',
+    '#FF9966',
+    '#FFB000',
+  
+    // Yellows
+    '#F9E71D',
+    '#FFD700',
+    '#FFFF00',
+    '#F5A721',
+    '#FFFFCC',
+    '#FFFFE0',
+  
+    // Greens
+    '#BCE228',
+    '#C1EA7E',
+    '#88C86E',
+    '#7FBF29',
+    '#6BAA5C',
+    '#6E9C60',
+    '#39A93B',
+  
+    // Teals and Aquas
+    '#28976F',
+    '#66FFCC',
+    '#99FFCC',
+    '#99FFFF',
+    '#66FFFF',
+    '#CCFFFF',
+    '#CCF0E1',
+  
+    // Pinks
+    '#FF4DA6',
+    '#FFCC99',
+  
+    // Other Pastels and Light Shades
+    '#DAE7E7',
+    '#E5FFCC',
+    '#CCFFCC',
+    
+    '#FFD8E4', 
+    '#B0E0E6' 
   ];
   
   // Function to convert HEX to RGB
@@ -70,8 +146,6 @@ const ColorPickerComponent = () => {
   };
 
   useEffect(() => {
-    
-  
     const fetchSavedSettings = async () => {
       try {
         const response = await fetch(LED_CONTROL_FEED, {

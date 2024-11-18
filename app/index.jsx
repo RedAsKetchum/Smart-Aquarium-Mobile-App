@@ -136,7 +136,7 @@ const fetchSensorData = async () => {
         if (!isNaN(sensorValue2)) {
           // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
           //setpHSensor(sensorValue2);  // Update state with the numeric value
-          //setpHSensor(-1);
+          setpHSensor(7.2);
 
         } else {
           console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
@@ -156,16 +156,18 @@ const fetchSensorData = async () => {
 
           // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
           //setTurbidity(sensorValue3);  // Update state with the numeric value
-          //setTurbidity(1);
+          setTurbidity(3.3);
 
           // Determine the label based on the value of sensorValue3
-          if (sensorValue3 >= 3.2) {
-            setTurbidityLabel('Clean');
-          } else if (sensorValue3 >= 2.5 && sensorValue3 < 3.2) {
-            setTurbidityLabel('Murky');
-          } else {
-            setTurbidityLabel('Dark');
-          }
+          // if (sensorValue3 >= 3.2) {
+          //   setTurbidityLabel('Clean');
+          // } else if (sensorValue3 >= 2.5 && sensorValue3 < 3.2) {
+          //   setTurbidityLabel('Murky');
+          // } else {
+          //   setTurbidityLabel('Dark');
+          // }
+
+          setTurbidityLabel('Clean');
           
         } else {
           console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
