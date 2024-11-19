@@ -18,9 +18,9 @@ import dayjs from 'dayjs';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  
-const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
+const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  
 //const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
-const AIO_ENDPOINT = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/temperature-sensor/data/last?X-AIO-Key=aio_FXeu11JxZcmPv3ey6r4twxbIyrfH";
+const AIO_ENDPOINT = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/temperature-sensor/data/last?X-AIO-Key=aio_Ecnw98E4ugDJ18vonFBSkLymwvwj";
 
 
 // ********************* Feeds *************************/
@@ -135,7 +135,7 @@ const fetchSensorData = async () => {
         const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
         if (!isNaN(sensorValue2)) {
           // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
-          //setpHSensor(sensorValue2);  // Update state with the numeric value
+          setpHSensor(sensorValue2);  // Update state with the numeric value
           //setpHSensor(-1);
 
         } else {
@@ -153,15 +153,15 @@ const fetchSensorData = async () => {
       if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
         const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
         if (!isNaN(sensorValue3)) {
-
+ 
           // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
-          //setTurbidity(sensorValue3);  // Update state with the numeric value
+          setTurbidity(sensorValue3);  // Update state with the numeric value
           //setTurbidity(1);
 
           // Determine the label based on the value of sensorValue3
           if (sensorValue3 >= 3.2) {
             setTurbidityLabel('Clean');
-          } else if (sensorValue3 >= 2.5 && sensorValue3 < 3.2) {
+          } else if (sensorValue3 >= 2.0 && sensorValue3 < 3.2) {
             setTurbidityLabel('Murky');
           } else {
             setTurbidityLabel('Dark');
@@ -345,7 +345,8 @@ const fetchSensorData = async () => {
                   <AnimatedCircularProgress
                     size={150}
                     width={20}
-                    fill={(turbiditySensor  / maxTurbidityGauge) * 100} //Max is 3.3V
+                    //fill={(turbiditySensor  / maxTurbidityGauge) * 100} //Max is 3.3V
+                    fill={(1 - (turbiditySensor / maxTurbidityGauge)) * 100}
                     tintColor="#9933ff"
                     backgroundColor="#d3d3d3"
                     lineCap="round"

@@ -11,7 +11,7 @@ import { styles } from './AppStyles';
 import { useNavigation } from '@react-navigation/native';
 
 const AIO_USERNAME = 'RedAsKetchum';  // Adafruit IO username
-const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Adafruit IO key
+const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  // Adafruit IO key
 const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`;  // HTTPS Adafruit IO feed for color and brightness
 const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define Adafruit IO topic for color
 
