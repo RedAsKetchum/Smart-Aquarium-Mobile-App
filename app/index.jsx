@@ -348,7 +348,6 @@ const fetchSensorData = async () => {
         const handleNoNotificationTimeout = async () => {
           const now = Date.now();
           
-          // Check if no notifications have been received for 3 minutes
           if (now - lastNotificationTime >= 10 * 1000) { 
             console.log('No notifications in the last 10 seconds. Fetching saved LED color.');
         
@@ -406,7 +405,7 @@ const fetchSensorData = async () => {
           });
       
           // Poll every minute to check for timeout
-          const intervalId = setInterval(handleNoNotificationTimeout, 60 * 1000);
+          const intervalId = setInterval(handleNoNotificationTimeout, 10 * 1000);
       
           return () => {
             if (client.isConnected()) {
