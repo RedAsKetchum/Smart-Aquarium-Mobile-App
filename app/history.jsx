@@ -16,6 +16,7 @@ const SENSOR_FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${
 const DISPENSER_FEED_URL = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${DISPENSER_FEED_KEY}/data?limit=200`;
 
 const RenderItem = React.memo(({ item, isDispenser }) => (
+
   <View className="p-3 bg-white rounded-lg m-3 shadow-sm flex-row">
     <View style={{ flex: 1 }}>
       <Text className="font-bold text-lg text-black">
@@ -43,10 +44,24 @@ const RenderItem = React.memo(({ item, isDispenser }) => (
             <TemperatureIcon name="thermometer" size={18} color="#ff1a1a" />
             <Text className="text-black text-base ml-2">{`Temperature: ${item.Sensor1} °F`}</Text>
           </View>
-          <View className="flex-row items-center mt-1">
+          {/* <View className="flex-row items-center mt-1">
             <TurbidityIcon name="water" size={18} color="#2489FD" />
             <Text className="text-black text-base ml-2">{`Turbidity: ${item.Sensor3} NTU`}</Text>
+          </View> */}
+
+          <View className="flex-row items-center mt-1">
+            <TurbidityIcon name="water" size={18} color="#2489FD" />
+            <Text className="text-black text-base ml-2">
+              {`Turbidity: ${
+                item.Sensor3 >= 3.2
+                  ? 'Clean'
+                  : item.Sensor3 >= 2.0 && item.Sensor3 < 3.2
+                  ? 'Murky'
+                  : 'Dark'
+              }`}
+            </Text>
           </View>
+
           <View className="flex-row items-center mt-1">
             <PHIcon name="test-tube" size={18} color="#9933ff" />
             <Text className="text-black text-base ml-2">{`pH Level: ${item.Sensor2}`}</Text>
