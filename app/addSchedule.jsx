@@ -159,8 +159,8 @@ export default function AddSchedule() {
                                 onValueChange={(itemValue) => setDevice(itemValue)}
                                 style={{ width: '100%' }}
                             >
-                                <Picker.Item label="LED" value="LED" color="black" />  
-                                <Picker.Item label="Feeder" value="Feeder" color="black" />
+                                <Picker.Item label="LED" value="LED" />
+                                <Picker.Item label="Feeder" value="Feeder" />
                             </Picker>
                             <TouchableOpacity onPress={() => setPickerVisible(false)}>
                                 <Text style={{ color: 'blue', marginTop: 10, textAlign: 'right' }}>Done</Text>

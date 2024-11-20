@@ -7,7 +7,7 @@ import { styles } from './AppStyles';  // Importing the styles from the new file
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CustomButton from '../components/CustomButton';
+
 
 const settings = () => {
 
@@ -19,7 +19,7 @@ const settings = () => {
   const [error, setError] = useState(null);
 
   const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
-  const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  // Your Adafruit IO key
+  const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
   const FEED_KEY = 'wifi-network';  // Your feed key
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const settings = () => {
     
     // Function to send reboot command to Adafruit IO
     const sendRebootCommand = async () => {
-      try {
+      try {F
         const response = await fetch('https://io.adafruit.com/api/v2/RedAsKetchum/feeds/reboot-action/data', {
           method: 'POST',
           headers: {
@@ -151,51 +151,25 @@ const settings = () => {
           </Text>
   
           {/* Sensor Settings */}
-          {/* <TouchableOpacity style={styles.buttons} onPress={() => router.push('/sensorSettings')}>
+          <TouchableOpacity style={styles.buttons} onPress={() => router.push('/sensorSettings')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Sensor Settings
             </Text>
-          </TouchableOpacity> */}
-
-          <View className="px-3">
-          <CustomButton
-                title="Sensor Settings"
-                handlePress={() => router.push('/sensorSettings')}
-                containerStyles="w-full mt-6"
-              />
-          </View>
-
+          </TouchableOpacity>
   
           {/* Dispenser Settings */}
-          {/* <TouchableOpacity style={styles.buttons} onPress={() => router.push('/dispenserSettings')}>
+          <TouchableOpacity style={styles.buttons} onPress={() => router.push('/dispenserSettings')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               Food Dispenser Settings
             </Text>
-          </TouchableOpacity> */}
-
-          <View className="px-3">
-          <CustomButton
-                title="Food Dispenser Settings"
-                handlePress={() => router.push('/dispenserSettings')}
-                containerStyles="w-full mt-6"
-              />
-          </View>
+          </TouchableOpacity>
   
           {/* LED Settings */}
-          {/* <TouchableOpacity style={styles.buttons} onPress={() => router.push('/ledSetting')}>
+          <TouchableOpacity style={styles.buttons} onPress={() => router.push('/ledSetting')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'white' }}>
               LED Settings
             </Text>
-          </TouchableOpacity> */}
-
-          <View className="px-3">
-          <CustomButton
-                title="LED Settings"
-                handlePress={() => router.push('/ledSetting')}
-                containerStyles="w-full mt-6"
-              />
-          </View>
-  
+          </TouchableOpacity>
   
           {/* Reboot */}
           <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64, marginTop: 48}]} onPress={sendRebootCommand}>

@@ -10,120 +10,22 @@ import { Client, Message } from 'paho-mqtt';
 import { styles } from './AppStyles';  
 import { useNavigation } from '@react-navigation/native';
 
-const AIO_USERNAME = 'RedAsKetchum';  
-const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj'; 
-const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`;  
-const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  
-
-const colorSwatches = [];
-const steps = [0, 64, 128, 192, 255]; 
-
-steps.forEach((r) => {
-  steps.forEach((g) => {
-    steps.forEach((b) => {
-      colorSwatches.push(`rgb(${r}, ${g}, ${b})`);
-    });
-  });
-});
+const AIO_USERNAME = 'RedAsKetchum';  // Adafruit IO username
+const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Adafruit IO key
+const LED_CONTROL_FEED = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`;  // HTTPS Adafruit IO feed for color and brightness
+const ESP32_MQTT_TOPIC_COLOR = `${AIO_USERNAME}/feeds/led-control`;  // Define Adafruit IO topic for color
 
 const ColorPickerComponent = () => {
-  const navigation = useNavigation(); 
+  const navigation = useNavigation(); // Use useNavigation hook
   const router = useRouter();
-  const [selectedColor, setSelectedColor] = useState('#00ff00');  
-  const [brightness, setBrightness] = useState(1); 
+  const [selectedColor, setSelectedColor] = useState('#00ff00');  // Default to green (RGB: 0, 255, 0)
+  const [brightness, setBrightness] = useState(1);  // Initial brightness (1 for full brightness)
   const [mqttClient, setMqttClient] = useState(null);
-  const [initialColor, setInitialColor] = useState('#00ff00'); 
-  const [initialBrightness, setInitialBrightness] = useState(1); 
-  const [isSaved, setIsSaved] = useState(true); 
-  const [isLedOn, setIsLedOn] = useState(true); 
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [initialColor, setInitialColor] = useState('#00ff00'); // Store the initially fetched color
+  const [initialBrightness, setInitialBrightness] = useState(1); // Store the initially fetched brightness
+  const [isSaved, setIsSaved] = useState(true); // Track if the user has saved
+  const [isLedOn, setIsLedOn] = useState(true); // Track if the LED is on or off
 
-  const colorSwatches = [
-    // Whites, Grays, and Blacks
-    '#FFFFFF',
-    '#E0E0E0',
-    '#C0C0C0',
-    '#A0A0A0',
-    '#808080',
-    '#606060',
-    '#404040',
-    '#202020',
-    '#000000',
-  
-    // Blues
-    '#A2CBEA',
-    '#94C1EC',
-    '#88CCDD',
-    '#6AB4C8',
-    '#2883A4',
-    '#2880B9',
-    '#28B6D8',
-    '#28547C',
-    '#004376',
-    '#003E6A',
-  
-    // Purples
-    '#8496C8',
-    '#C1A0FF',
-    '#8463A7',
-    '#7277DA',
-    '#B34FB3',
-    '#844486',
-  
-    // Reds
-    '#FF0000',
-    '#FF0038',
-    '#A31F44',
-    '#D12D25',
-    '#FF3333',
-    '#A83462',
-  
-    // Oranges
-    '#FE6600',
-    '#FF6600',
-    '#E3691D',
-    '#FF9966',
-    '#FFB000',
-  
-    // Yellows
-    '#F9E71D',
-    '#FFD700',
-    '#FFFF00',
-    '#F5A721',
-    '#FFFFCC',
-    '#FFFFE0',
-  
-    // Greens
-    '#BCE228',
-    '#C1EA7E',
-    '#88C86E',
-    '#7FBF29',
-    '#6BAA5C',
-    '#6E9C60',
-    '#39A93B',
-  
-    // Teals and Aquas
-    '#28976F',
-    '#66FFCC',
-    '#99FFCC',
-    '#99FFFF',
-    '#66FFFF',
-    '#CCFFFF',
-    '#CCF0E1',
-  
-    // Pinks
-    '#FF4DA6',
-    '#FFCC99',
-  
-    // Other Pastels and Light Shades
-    '#DAE7E7',
-    '#E5FFCC',
-    '#CCFFCC',
-    
-    '#FFD8E4', 
-    '#B0E0E6' 
-  ];
-  
   // Function to convert HEX to RGB
   const hexToRgb = (hex) => {
     const bigint = parseInt(hex.slice(1), 16);
@@ -138,13 +40,6 @@ const ColorPickerComponent = () => {
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   };
 
-    // Define handleSwatchPress to handle color selection
-  const handleSwatchPress = (color) => {
-    setSelectedColor(color);
-    sendColorAndBrightnessToESP32(color, brightness);
-    setIsSaved(false); // Mark as unsaved when color is changed
-  };
-
   useEffect(() => {
     const fetchSavedSettings = async () => {
       try {
@@ -156,44 +51,45 @@ const ColorPickerComponent = () => {
         });
         const data = await response.json();
         if (data.length > 0) {
-          console.log("Fetched data from Adafruit IO:", data[0].value);
           const [r, g, b, brightnessValue, savedValue] = data[0].value.split(',');
           const savedColor = rgbToHex(Number(r), Number(g), Number(b));
           const savedBrightness = Number(brightnessValue);
-  
+          
           setSelectedColor(savedColor);
           setBrightness(savedBrightness);
           setIsLedOn(savedBrightness > 0);
+
+          // Store the initial values for reverting later
           setInitialColor(savedColor);
           setInitialBrightness(savedBrightness);
           setIsSaved(savedValue === 'SAVED');
         } else {
+          // Set default values if no saved settings are available
           setSelectedColor('#00ff00');
           setBrightness(1);
           setIsLedOn(true);
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
+        // Set default values in case of an error
         setSelectedColor('#00ff00');
         setBrightness(1);
         setIsLedOn(true);
-      } finally {
-        setIsInitialLoad(false); // Mark initial load as complete
       }
     };
-  
+
     const client = new Client('wss://io.adafruit.com/mqtt', `mqtt-client-${Date.now()}`);
     client.onConnectionLost = (responseObject) => {
       if (responseObject.errorCode !== 0) {
         console.log('Connection lost:', responseObject.errorMessage);
       }
     };
-  
+
     client.onMessageArrived = (message) => {
       console.log('Message arrived:', message.payloadString);
     };
-  
-    const initializeMqtt = async () => {
+
+    const initializeMqtt = () => {
       client.connect({
         useSSL: true,
         userName: AIO_USERNAME,
@@ -201,7 +97,8 @@ const ColorPickerComponent = () => {
         onSuccess: async () => {
           console.log('Connected to Adafruit IO via MQTT');
           setMqttClient(client);
-          // Fetch saved settings after establishing MQTT connection
+
+          // Fetch saved settings before sending default values
           await fetchSavedSettings();
         },
         onFailure: (err) => {
@@ -209,26 +106,25 @@ const ColorPickerComponent = () => {
         },
       });
     };
-  
+
+    // Initialize MQTT and fetch settings in order
     initializeMqtt();
-  
+
     return () => {
       if (client.isConnected()) {
         client.disconnect();
       }
     };
   }, []);
-  
+
   const sendColorAndBrightnessToESP32 = (color, brightness) => {
-    if (isInitialLoad || !mqttClient) return; // Ensure MQTT client is connected and not during initial load
-  
     const rgb = hexToRgb(color);
-    if (rgb) {
+    if (rgb && mqttClient) {
       const { r, g, b } = rgb;
       const adjustedR = Math.round(r * brightness);
       const adjustedG = Math.round(g * brightness);
       const adjustedB = Math.round(b * brightness);
-  
+
       const controlMessage = `${adjustedR},${adjustedG},${adjustedB},${brightness}`;
       const message = new Message(controlMessage);
       message.destinationName = ESP32_MQTT_TOPIC_COLOR;
@@ -237,8 +133,7 @@ const ColorPickerComponent = () => {
       setIsLedOn(brightness > 0);
     }
   };
-  
-  
+
   const saveToAdafruitIO = async (color, brightness) => {
     const rgb = hexToRgb(color);
     const controlMessage = `${rgb.r},${rgb.g},${rgb.b},${brightness},SAVED`;  // Add "SAVED" as an indicator
@@ -298,82 +193,72 @@ const ColorPickerComponent = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaView className="bg-primary h-full">
-        <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover" />
-        
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 10, marginLeft: 10 }}>
+        <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover"></ImageBackground>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10}}>
+          <TouchableOpacity onPress={handleBackPress} style={{padding: 10, marginLeft: 10}}>
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{ padding: 10, marginRight: 18 }}>
+          <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{padding: 10, marginRight: 18}}>
             <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Save</Text>
           </TouchableOpacity>
         </View>
-  
-        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+        <View style={{ justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 20}}>
           <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
         </View>
-  
-        {/* Swatches */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 20 }}>
-          {colorSwatches.map((color) => (
-            <TouchableOpacity
-              key={color}
-              onPress={() => handleSwatchPress(color)}
-              style={{
-                width: 40,
-                height: 40,
-                backgroundColor: color,
-                margin: 2,
-                borderColor: selectedColor === color ? 'white' : 'transparent',
-                borderWidth: 2,
-              }}
-            />
-          ))}
-        </View>
-  
-        {/* Brightness Slider */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 30, width: 380 }}>
-          <TouchableOpacity onPress={() => {
-            const newBrightness = Math.max(0, brightness - 0.1);
-            setBrightness(newBrightness);
-            sendColorAndBrightnessToESP32(selectedColor, newBrightness);
-            setIsSaved(false);
-          }}>
-            <Icon name="sunny" size={30} color="#000" />
-          </TouchableOpacity>
-          <View style={{ position: 'relative', flex: 1, height: 40, justifyContent: 'center' }}>
-            <Slider
-              style={{ width: '100%' }}
-              minimumValue={0}
-              maximumValue={1}
-              step={0.01}
-              value={brightness}
-              onValueChange={(value) => {
-                setBrightness(value);
-                sendColorAndBrightnessToESP32(selectedColor, value);
-                setIsLedOn(value > 0);
-                setIsSaved(false);
-              }}
-              minimumTrackTintColor="#FFFFFF"
-              maximumTrackTintColor="#FFFFFF"
-            />
+        <View style={{flex: 0.8, justifyContent: 'center', alignItems: 'center'}}>
+          <WheelColorPicker
+            color={selectedColor}
+            onColorChange={color => {
+              setSelectedColor(color);
+              sendColorAndBrightnessToESP32(color, brightness);
+              setIsSaved(false); // Mark as unsaved when color is changed
+            }}
+            style={{width: 380, height: 400}}
+            sliderSize={35}
+            sliderHidden={true}
+          />
+          <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 30, width: 380}}>
+            <TouchableOpacity onPress={() => {
+              const newBrightness = Math.max(0, brightness - 0.1);
+              setBrightness(newBrightness);
+              sendColorAndBrightnessToESP32(selectedColor, newBrightness);
+              setIsSaved(false); // Mark as unsaved when brightness is changed
+            }}>
+              <Icon name="sunny" size={30} color="#000" />
+            </TouchableOpacity>
+            <View style={{position: 'relative', flex: 1, height: 40, justifyContent: 'center'}}>
+              <Slider
+                style={{width: '100%'}}
+                minimumValue={0}
+                maximumValue={1}
+                step={0.01}
+                value={brightness}
+                onValueChange={(value) => {
+                  setBrightness(value);
+                  sendColorAndBrightnessToESP32(selectedColor, value);
+                  setIsLedOn(value > 0);
+                  setIsSaved(false); // Mark as unsaved when brightness is changed
+                }}
+                minimumTrackTintColor="#FFFFFF"
+                maximumTrackTintColor="#FFFFFF"
+              />
+            </View>
+            <TouchableOpacity onPress={() => {
+              const newBrightness = Math.min(1, brightness + 0.1);
+              setBrightness(newBrightness);
+              sendColorAndBrightnessToESP32(selectedColor, newBrightness);
+              setIsSaved(false); // Mark as unsaved when brightness is changed
+            }}>
+              <Icon name="sunny" size={40} color="#000" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => {
-            const newBrightness = Math.min(1, brightness + 0.1);
-            setBrightness(newBrightness);
-            sendColorAndBrightnessToESP32(selectedColor, newBrightness);
-            setIsSaved(false);
-          }}>
-            <Icon name="sunny" size={40} color="#000" />
-          </TouchableOpacity>
         </View>
-  
-        <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50 }]} onPress={resetToDefault}>
+        <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]} onPress={resetToDefault}>
           <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>Reset to default</Text>
         </TouchableOpacity>
-        
       </SafeAreaView>
     </GestureHandlerRootView>
   );
 };
+
 export default ColorPickerComponent;
