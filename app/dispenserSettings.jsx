@@ -12,7 +12,7 @@ import axios from 'axios';
 
 // Adafruit IO Configuration
 const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  
-const ADAFRUIT_IO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
+const ADAFRUIT_IO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  
 const ADAFRUIT_IO_FEED = 'feeding-schedule'; 
 
 export default function DispenserSettings() {
