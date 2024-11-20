@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
-import WheelColorPicker from 'react-native-wheel-color-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { Client, Message } from 'paho-mqtt';
 import { styles } from './AppStyles';  
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const AIO_USERNAME = 'RedAsKetchum';  
 const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj'; 
@@ -97,7 +97,7 @@ const ColorPickerComponent = () => {
     '#BCE228',
     '#C1EA7E',
     '#88C86E',
-    '#7FBF29',
+    '#00ff00',
     '#6BAA5C',
     '#6E9C60',
     '#39A93B',
@@ -155,28 +155,39 @@ const ColorPickerComponent = () => {
           },
         });
         const data = await response.json();
-        if (data.length > 0) {
-          console.log("Fetched data from Adafruit IO:", data[0].value);
-          const [r, g, b, brightnessValue, savedValue] = data[0].value.split(',');
+  
+        // Find the first entry with "SAVED" in its value
+        const savedEntry = data.find((item) => item.value.includes('SAVED'));
+  
+        if (savedEntry) {
+          console.log("Fetched SAVED data from Adafruit IO:", savedEntry.value);
+          console.log("Selected color updated to:", selectedColor);
+  
+          // Extract RGB and brightness values from the entry
+          const [r, g, b, brightnessValue] = savedEntry.value.split(',');
           const savedColor = rgbToHex(Number(r), Number(g), Number(b));
           const savedBrightness = Number(brightnessValue);
   
+          // Update the state with fetched values
           setSelectedColor(savedColor);
           setBrightness(savedBrightness);
           setIsLedOn(savedBrightness > 0);
           setInitialColor(savedColor);
           setInitialBrightness(savedBrightness);
-          setIsSaved(savedValue === 'SAVED');
+          setIsSaved(true); // Mark as saved
+          await saveToAdafruitIO(savedColor, savedBrightness);
         } else {
-          setSelectedColor('#00ff00');
-          setBrightness(1);
-          setIsLedOn(true);
+          console.log("No SAVED data found, using default values.");
+          setSelectedColor('#00ff00'); // Default color
+          setBrightness(1); // Default brightness
+          setIsLedOn(true); // Default LED state
         }
       } catch (error) {
         console.error("Error fetching saved settings: ", error.message || error);
-        setSelectedColor('#00ff00');
-        setBrightness(1);
-        setIsLedOn(true);
+        // Handle error by setting defaults
+        setSelectedColor('#00ff00'); // Default color
+        setBrightness(1); // Default brightness
+        setIsLedOn(true); // Default LED state
       } finally {
         setIsInitialLoad(false); // Mark initial load as complete
       }
@@ -193,24 +204,18 @@ const ColorPickerComponent = () => {
       console.log('Message arrived:', message.payloadString);
     };
   
-    const initializeMqtt = async () => {
-      client.connect({
-        useSSL: true,
-        userName: AIO_USERNAME,
-        password: AIO_KEY,
-        onSuccess: async () => {
-          console.log('Connected to Adafruit IO via MQTT');
-          setMqttClient(client);
-          // Fetch saved settings after establishing MQTT connection
-          await fetchSavedSettings();
-        },
-        onFailure: (err) => {
-          console.error('MQTT connection error:', err.message || err);
-        },
-      });
-    };
-  
-    initializeMqtt();
+    client.connect({
+      useSSL: true,
+      userName: AIO_USERNAME,
+      password: AIO_KEY,
+      onSuccess: () => {
+        console.log('Connected to Adafruit IO via MQTT');
+        fetchSavedSettings(); // Fetch saved settings after connection
+      },
+      onFailure: (err) => {
+        console.error('MQTT connection error:', err.message || err);
+      },
+    });
   
     return () => {
       if (client.isConnected()) {
@@ -301,7 +306,7 @@ const ColorPickerComponent = () => {
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover" />
         
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 10, marginLeft: 10 }}>
+          <TouchableOpacity onPress={handleBackPress} style={{ padding: 10, marginLeft: 10 }}>
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{ padding: 10, marginRight: 18 }}>
@@ -332,7 +337,7 @@ const ColorPickerComponent = () => {
         </View>
   
         {/* Brightness Slider */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 30, width: 380 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 30 }}>
           <TouchableOpacity onPress={() => {
             const newBrightness = Math.max(0, brightness - 0.1);
             setBrightness(newBrightness);
@@ -341,7 +346,7 @@ const ColorPickerComponent = () => {
           }}>
             <Icon name="sunny" size={30} color="#000" />
           </TouchableOpacity>
-          <View style={{ position: 'relative', flex: 1, height: 40, justifyContent: 'center' }}>
+          <View style={{ position: 'relative', flex: 1, height: 40, justifyContent: 'center'}}>
             <Slider
               style={{ width: '100%' }}
               minimumValue={0}

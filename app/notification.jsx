@@ -150,10 +150,38 @@ export default function NotificationPage() {
         if (!lastFetchedTimestamp || latestTimestamp > lastFetchedTimestamp) {
             setLastFetchedTimestamp(latestTimestamp); // Update the timestamp
             fetchNotificationData(); // Fetch the full dataset or handle new data
+
+            sendRedToLEDControlFeed();
         }
     } catch (error) {
         console.error('Error fetching latest data:', error);
     }
+};
+
+const sendRedToLEDControlFeed = async () => {
+  try {
+    const redColorData = {
+      value: `255,0,0,1`, 
+    };
+
+    const response = await fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/led-control/data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-AIO-Key': AIO_KEY,
+      },
+      body: JSON.stringify(redColorData),
+    });
+
+    if (!response.ok) {
+      const errorDetails = await response.text();
+      throw new Error(`Failed to send red color: ${response.status} - ${errorDetails}`);
+    }
+
+    console.log('Red color sent to LED control feed.');
+  } catch (error) {
+    console.error('Error sending red color to LED control feed:', error);
+  }
 };
 
 const fetchNotificationData = async () => {
