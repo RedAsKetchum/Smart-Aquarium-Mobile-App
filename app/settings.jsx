@@ -19,7 +19,7 @@ const settings = () => {
   const [error, setError] = useState(null);
 
   const AIO_USERNAME = 'RedAsKetchum';  // Your Adafruit IO username
-  const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Your Adafruit IO key
+  const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  // Your Adafruit IO key
   const FEED_KEY = 'wifi-network';  // Your feed key
 
   useEffect(() => {

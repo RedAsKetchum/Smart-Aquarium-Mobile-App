@@ -18,7 +18,7 @@ import dayjs from 'dayjs';
 
 // ********************* Adafruit IO credentials ***********************/
 const AIO_USERNAME = 'RedAsKetchum';  
-const AIO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  
+const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  
 const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 
 // ********************* Feeds *************************/
