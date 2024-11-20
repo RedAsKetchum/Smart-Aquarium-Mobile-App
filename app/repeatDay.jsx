@@ -9,11 +9,18 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function RepeatDay() {
     const navigation = useNavigation(); 
-    const { selectedDevice = "LED" , selectedTime, selectedDays: selectedDaysParam, id, isEditMode } = useLocalSearchParams();  // `isEditMode` is coming from navigation params
+    const { selectedDevice = "LED", selectedTime, selectedDays: selectedDaysParam, id, isEditMode = 'false' } = useLocalSearchParams();
+    const editMode = isEditMode === 'true';
     const initialSelectedDays = selectedDaysParam ? selectedDaysParam.split(',') : [];
     const [selectedDays, setSelectedDays] = useState(initialSelectedDays);
     const [device, setDevice] = useState(selectedDevice);
+    const [date, setDate] = useState(new Date());
 
+    console.log('Inside Repeat Day isEditMode:', isEditMode);
+
+    const params = useLocalSearchParams();
+    console.log('All params in Repeat Day:', params);
+    
     const days = [
         { id: 'Su', label: 'Every Sunday' },
         { id: 'Mo', label: 'Every Monday' },
@@ -36,6 +43,7 @@ export default function RepeatDay() {
     const handleSave = () => {
         // Convert isEditMode to a boolean
         const editMode = isEditMode === 'true' || isEditMode === true;
+
     
         if (editMode) {
             // Navigate back to editSchedule with selected days
