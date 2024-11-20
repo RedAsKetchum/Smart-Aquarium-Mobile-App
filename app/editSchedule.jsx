@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Adafruit IO Configuration
 const ADAFRUIT_IO_USERNAME = 'RedAsKetchum';  // Replace with your Adafruit IO username
-const ADAFRUIT_IO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  // Replace with your Adafruit IO key
+const ADAFRUIT_IO_KEY = 'aio_FXeu11JxZcmPv3ey6r4twxbIyrfH';  // Replace with your Adafruit IO key
 const ADAFRUIT_IO_FEED = 'feeding-schedule';  // Replace with your Adafruit IO feed
 
 export default function EditSchedule() {
@@ -24,8 +24,6 @@ export default function EditSchedule() {
     const [device, setDevice] = useState(selectedDevice);
     const [scheduledValue, setScheduledValue] = useState(1);
     const [scheduleId, setScheduleId] = useState(id);
-
-    console.log('Inside Edit Schedule isEditMode:', isEditMode);
     
     useEffect(() => {
         if (id) {
@@ -33,49 +31,6 @@ export default function EditSchedule() {
         }
     }, [id]);
 
-    useEffect(() => {
-        console.log("Received selectedTime:", selectedTime);  // Log the initial format of selectedTime
-        
-        if (selectedTime) {
-            // Try parsing in 12-hour format (e.g., "02:21 PM")
-            let timeParts = selectedTime.match(/(\d+):(\d+)\s?(AM|PM)/i);
-            if (timeParts) {
-                let hours = parseInt(timeParts[1], 10);
-                const minutes = parseInt(timeParts[2], 10);
-                const ampm = timeParts[3].toUpperCase();
-    
-                if (ampm === 'PM' && hours < 12) hours += 12;
-                if (ampm === 'AM' && hours === 12) hours = 0;
-    
-                const today = new Date();
-                today.setHours(hours);
-                today.setMinutes(minutes);
-                today.setSeconds(0);
-                today.setMilliseconds(0);
-    
-                setDate(today);
-                return;
-            }
-    
-            // Try parsing in ISO 8601 format (e.g., "2024-11-12T19:21:00.000Z")
-            const isoDate = new Date(selectedTime);
-            if (!isNaN(isoDate.getTime())) {
-                setDate(isoDate);
-                return;
-            }
-    
-            // Log error if neither format is recognized
-            console.error("Invalid date format for selectedTime:", selectedTime);
-        }
-    }, [selectedTime]);
-    
-    useEffect(() => {
-        if (selectedDays) {
-            setSelectedDaysState(selectedDays.split(',')); // Set `selectedDaysState` based on the passed `selectedDays`
-        }
-    }, [selectedDays]);
-    
-    
     useEffect(() => {
         // Load scheduledValue from AsyncStorage if it exists
         const loadScheduledValue = async () => {
@@ -231,15 +186,14 @@ export default function EditSchedule() {
                             <Text style={{ fontSize: 17,  color: 'white', marginLeft: 10}}>Repeat Day</Text>
                                 <TouchableOpacity  
                                     onPress={() => router.push({ 
-                                        pathname: 'repeatDay',  
+                                        pathname: './repeatDay', 
                                         params: { 
-                                            id: id || '', 
+                                            id,
                                             selectedDays: selectedDaysState.join(','), 
                                             selectedTime: date.toISOString(),
-                                            isEditMode: isEditMode ? 'true' : 'false',  // Convert to string
+                                            isEditMode,
                                             selectedDevice: device,
-                                        }
-                                    })}                                    
+                                        }})}  
                                     style={{flexDirection: 'row',padding: 10}}>
                                     <Text style={{ fontSize: 17, color: 'purple', marginRight: 10 }}>{formatSelectedDays()}</Text>
                                     <Icon 
@@ -274,14 +228,14 @@ export default function EditSchedule() {
                                 onValueChange={(itemValue) => setDevice(itemValue)}
                                 style={{ width: '100%' }}
                             >
-                                <Picker.Item label="LED" value="LED" color="black" />  
-                                <Picker.Item label="Feeder" value="Feeder" color="black" />
+                                <Picker.Item label="LED" value="LED" />
+                                <Picker.Item label="Feeder" value="Feeder" />
                             </Picker>
                             <TouchableOpacity onPress={() => setPickerVisible(false)}>
                                 <Text style={{ color: 'blue', marginTop: 10, textAlign: 'right' }}>Done</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                        </View>
                 </Modal>
                     </View>
                     <TouchableOpacity style={[styles.buttons, { borderRadius: 30, height: 65, marginTop: 50}]} 
