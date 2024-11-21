@@ -21,7 +21,7 @@ export default function StreamScreen() {
             setStreamStats({
                 resolution: '1920x1080',
                 fps: 30,
-                bitrate: '6000 kbps',
+                bitrate: '8000 kbps',
             });
         };
 
