@@ -195,8 +195,9 @@ const fetchSensorData = async () => {
       // Function to handle long polling
       const startLongPolling = () => {
         fetchSensorData();
-        // Poll every 10 seconds (or adjust as needed)
-        setTimeout(startLongPolling, 10000);
+
+        // Poll every 6 seconds (or adjust as needed)
+        setTimeout(startLongPolling, 5000);
       };
 
       useEffect(() => {
