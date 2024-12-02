@@ -92,7 +92,7 @@ export default function HistoryPage() {
       const parsedData = data.map((item) => {
         try {
           const parsedValue = JSON.parse(item.value);
-          console.log(parsedValue); // Add this line to inspect the structure
+          //console.log(parsedValue); // Add this line to inspect the structure
           if (parsedValue && typeof parsedValue === 'object') {
             return parsedValue;
           }
@@ -112,7 +112,7 @@ export default function HistoryPage() {
       if (isDispenser) {
         const formattedDispenserData = uniqueData.map(item => {
           // Debugging Type field presence
-          console.log(item.Type); // Check if Type exists in the item
+          //console.log(item.Type); // Check if Type exists in the item
           return {
             Type: item.Type, // Ensure Type is correctly mapped
             Amount: item.Amount,

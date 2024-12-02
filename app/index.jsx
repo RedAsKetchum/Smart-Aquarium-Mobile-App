@@ -113,7 +113,7 @@ const fetchSensorData = async () => {
       throw new Error(`API request failed for Sensor1 with status ${response.status}`);
     }
     const data = await response.json();
-    console.log('Latest feed data for Sensor1:', data);
+    //console.log('Latest feed data for Sensor1:', data);
 
     // Fetch data for Sensor2 (pH Sensor)
     const phResponse = await fetch(AIO_ENDPOINT2);  // Ensure the casing is correct here
@@ -121,7 +121,7 @@ const fetchSensorData = async () => {
       throw new Error(`API request failed for Sensor2 with status ${phResponse.status}`);
     }
     const phData = await phResponse.json();  // Correct casing here as well
-    console.log('Latest feed data for Sensor2:', phData);
+    //console.log('Latest feed data for Sensor2:', phData);
 
     // Fetch data for Sensor3 (Turbidity Sensor)
     const turResponse = await fetch(AIO_ENDPOINT3);
@@ -129,7 +129,7 @@ const fetchSensorData = async () => {
       throw new Error(`API request failed for Sensor3 with status ${turResponse.status}`);
     }
     const turbidityData = await turResponse.json();
-    console.log('Latest feed data for Sensor3:', turbidityData);
+    //console.log('Latest feed data for Sensor3:', turbidityData);
 
     // Handle Sensor1 (Temperature Sensor)
     if (data.value) {
@@ -195,8 +195,8 @@ const fetchSensorData = async () => {
       // Function to handle long polling
       const startLongPolling = () => {
         fetchSensorData();
-        // Poll every 5 seconds (or adjust as needed)
-        setTimeout(startLongPolling, 5000);
+        // Poll every 6 seconds (or adjust as needed)
+        setTimeout(startLongPolling, 6000);
       };
 
       useEffect(() => {
