@@ -24,6 +24,8 @@ const AIO_USERNAME = 'RedAsKetchum';
 const AIO_KEY = 'aio_Ecnw98E4ugDJ18vonFBSkLymwvwj';  
 //const AIO_ENDPOINT = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${FEED_KEY}/data/last?X-AIO-Key=${AIO_KEY}`;
 const AIO_ENDPOINT = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/temperature-sensor/data/last?X-AIO-Key=aio_Ecnw98E4ugDJ18vonFBSkLymwvwj";
+const AIO_ENDPOINT2 = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/ph-extra/data/last?X-AIO-Key=aio_Ecnw98E4ugDJ18vonFBSkLymwvwj";
+const AIO_ENDPOINT3 = "https://io.adafruit.com/api/v2/RedAsKetchum/feeds/turbidity-extra/data/last?X-AIO-Key=aio_Ecnw98E4ugDJ18vonFBSkLymwvwj";
 
 
 // ********************* Feeds *************************/
@@ -102,26 +104,36 @@ export default function App() {
       );
   };
 
-   // Function to fetch the latest sensor data from Adafruit IO
+// Function to fetch the latest sensor data from Adafruit IO
 const fetchSensorData = async () => {
   try {
-    // const response = await fetch(AIO_ENDPOINT);
-    // const data = await response.json();
-    // console.log('Latest feed data:', data);
-
+    // Fetch data for Sensor1 (Temperature Sensor)
     const response = await fetch(AIO_ENDPOINT);
-    
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      throw new Error(`API request failed for Sensor1 with status ${response.status}`);
     }
-
     const data = await response.json();
-    console.log('Latest feed data:', data);
+    console.log('Latest feed data for Sensor1:', data);
 
+    // Fetch data for Sensor2 (pH Sensor)
+    const phResponse = await fetch(AIO_ENDPOINT2);  // Ensure the casing is correct here
+    if (!phResponse.ok) {
+      throw new Error(`API request failed for Sensor2 with status ${phResponse.status}`);
+    }
+    const phData = await phResponse.json();  // Correct casing here as well
+    console.log('Latest feed data for Sensor2:', phData);
+
+    // Fetch data for Sensor3 (Turbidity Sensor)
+    const turResponse = await fetch(AIO_ENDPOINT3);
+    if (!turResponse.ok) {
+      throw new Error(`API request failed for Sensor3 with status ${turResponse.status}`);
+    }
+    const turbidityData = await turResponse.json();
+    console.log('Latest feed data for Sensor3:', turbidityData);
+
+    // Handle Sensor1 (Temperature Sensor)
     if (data.value) {
       const sensorData = JSON.parse(data.value);  // Parse the JSON string inside `value`
-      
-      //Check for Sensor 1 "Temperature Sensor" value
       if (sensorData.Sensor1 !== null && sensorData.Sensor1 !== undefined) {
         const sensorValue = parseFloat(sensorData.Sensor1);  // Convert to number
         if (!isNaN(sensorValue)) {
@@ -130,59 +142,47 @@ const fetchSensorData = async () => {
           console.error("Sensor1 data is not a valid number:", sensorData.Sensor1);
           setTemperatureSensor(-1);  // Set to null if invalid
         }
-      }
-        else {
+      } else {
         console.error("Sensor1 is null or undefined.");
         setTemperatureSensor(-1);  // Set to null if no valid value is found
       }
+    }
 
-      // Check for Sensor2 "pH Sensor" value
-      if (sensorData.Sensor2 !== null && sensorData.Sensor2 !== undefined) {
-        const sensorValue2 = parseFloat(sensorData.Sensor2);  // Convert to number
-        if (!isNaN(sensorValue2)) {
-          // Handle the Sensor2 value here (e.g., log it, update another state, etc.)
-          setpHSensor(sensorValue2);  // Update state with the numeric value
-          //setpHSensor(-1);
+    // Handle Sensor2 (pH Sensor)
+    if (phData.value !== null && phData.value !== undefined) {
+      const sensorValue2 = parseFloat(phData.value);  // Convert to number
+      if (!isNaN(sensorValue2)) {
+        setpHSensor(sensorValue2);  // Update state with the numeric value
+      } else {
+        console.error("Sensor2 data is not a valid number:", phData.value);
+        setpHSensor(-1);
+      }
+    } else {
+      console.error("Sensor2 is null or undefined.");
+      setpHSensor(-1);
+    }
 
+    // Handle Sensor3 (Turbidity Sensor)
+    if (turbidityData.value !== null && turbidityData.value !== undefined) {
+      const sensorValue3 = parseFloat(turbidityData.value);  // Convert to number
+      if (!isNaN(sensorValue3)) {
+        setTurbidity(sensorValue3);  // Update state with the numeric value
+
+        // Determine the label based on the value of sensorValue3
+        if (sensorValue3 >= 3.2) {
+          setTurbidityLabel('Clean');
+        } else if (sensorValue3 >= 2.0 && sensorValue3 < 3.2) {
+          setTurbidityLabel('Murky');
         } else {
-          console.error("Sensor2 data is not a valid number:", sensorData.Sensor2);
-          // Optionally, handle invalid Sensor2 data here
-          setpHSensor(-1); 
+          setTurbidityLabel('Dark');
         }
       } else {
-        console.error("Sensor2 is null or undefined.");
-        // Optionally, handle null or undefined Sensor2 here
-        setpHSensor(-1); 
+        console.error("Sensor3 data is not a valid number:", turbidityData.value);
+        setTurbidity(-1);
       }
-
-      // Check for Sensor3 "Turbidity Sensor" value
-      if (sensorData.Sensor3 !== null && sensorData.Sensor3 !== undefined) {
-        const sensorValue3 = parseFloat(sensorData.Sensor3);  // Convert to number
-        if (!isNaN(sensorValue3)) {
- 
-          // Handle the Sensor3 value here (e.g., log it, update another state, etc.)
-          setTurbidity(sensorValue3);  // Update state with the numeric value
-          //setTurbidity(1);
-
-          // Determine the label based on the value of sensorValue3
-          if (sensorValue3 >= 3.2) {
-            setTurbidityLabel('Clean');
-          } else if (sensorValue3 >= 2.0 && sensorValue3 < 3.2) {
-            setTurbidityLabel('Murky');
-          } else {
-            setTurbidityLabel('Dark');
-          }
-          
-        } else {
-          console.error("Sensor3 data is not a valid number:", sensorData.Sensor3);
-          // Optionally, handle invalid Sensor3 data here
-          setTurbidity(-1); 
-        }
-      } else {
-        console.error("Sensor3 is null or undefined.");
-        // Optionally, handle null or undefined Sensor3 here
-        setTurbidity(-1); 
-      }
+    } else {
+      console.error("Sensor3 is null or undefined.");
+      setTurbidity(-1);
     }
 
   } catch (error) {
