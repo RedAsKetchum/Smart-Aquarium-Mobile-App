@@ -48,7 +48,7 @@ const settings = () => {
     setCurrentFeed({ feed, value });
     intervalRef.current = setInterval(() => {
       sendDataToFeed(feed, value);
-    }, 5000); // Sends data every 5 seconds
+    }, 3000); // Sends data every 3 seconds
   };
 
   // Clean up on component unmount
