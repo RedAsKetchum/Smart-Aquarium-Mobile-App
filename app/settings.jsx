@@ -205,7 +205,8 @@ const settings = () => {
           </TouchableOpacity>
   
           {/* Format */}
-          <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64}]} onPress={sendFormatCommand}>
+          <TouchableOpacity style={[styles.buttons, { borderRadius: 32.5, height: 64}]} 
+         onPress={() => router.push('/buttons')}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: 'red' }}>
               Format
             </Text>

@@ -63,6 +63,9 @@ const RootLayout = () => {
       {/* Notification Page */}
       <Stack.Screen name="notification" options={{ headerShown: false }} />
 
+      {/* Button Page */}
+      <Stack.Screen name="buttons" options={{ headerShown: false }} />
+
     </Stack>
   );
 };
