@@ -51,7 +51,7 @@ const ColorPickerComponent = () => {
     '#000000',
   
     // Blues
-    '#A2CBEA',
+    '#0000FF',
     '#94C1EC',
     '#88CCDD',
     '#6AB4C8',
