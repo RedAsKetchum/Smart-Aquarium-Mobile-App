@@ -182,7 +182,7 @@ const ColorPickerComponent = () => {
           setBrightness(1); // Default brightness
           setIsLedOn(true); // Default LED state
         }
-      } catch (error) {
+      } catch (error) {F
         console.error("Error fetching saved settings: ", error.message || error);
         // Handle error by setting defaults
         setSelectedColor('#00ff00'); // Default color
@@ -306,17 +306,20 @@ const ColorPickerComponent = () => {
         <ImageBackground source={require('../assets/images/gradient.png')} className="flex-1 absolute top-0 left-0 right-0 bottom-0" resizeMode="cover" />
         
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginTop: 10 }}>
-          <TouchableOpacity onPress={handleBackPress} style={{ padding: 10, marginLeft: 10 }}>
-            <Icon name="arrow-back" size={30} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{ padding: 10, marginRight: 18 }}>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Save</Text>
-          </TouchableOpacity>
-        </View>
-  
-        <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
-          <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white' }}>LED Setting</Text>
-        </View>
+  {/* Back Button */}
+  <TouchableOpacity onPress={handleBackPress} style={{ padding: 10 }}>
+    <Icon name="arrow-back" size={35} color="white" />
+  </TouchableOpacity>
+
+  {/* Centered LED Setting */}
+  <Text style={{ fontSize: 25, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>LED Setting</Text>
+
+  {/* Save Button */}
+  <TouchableOpacity onPress={() => saveToAdafruitIO(selectedColor, brightness)} style={{ padding: 10 }}>
+    <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>Save</Text>
+  </TouchableOpacity>
+</View>
+
   
         {/* Swatches */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 20 }}>
